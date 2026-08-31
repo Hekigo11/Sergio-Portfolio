@@ -1,14 +1,23 @@
-import { useEffect, useState } from "react";
+interface StickyNavbarProps {
+  darkMode: boolean;
+  onToggleDarkMode: () => void;
+  onNavigate: (id: string) => void;
+  activeSection: string;
+}
 
-export function StickyNavbar() {
-  const [darkMode, setDarkMode] = useState(false);
+const navItems = [
+  { label: "Home", id: "home" },
+  { label: "Projects", id: "projects" },
+  { label: "About Me", id: "about" },
+  { label: "Connect", id: "connect" },
+];
 
-  useEffect(() => {
-    document.body.dataset.theme = darkMode ? "dark" : "light";
-  }, [darkMode]);
-
-  const navItems = ["Home", "Projects", "About Me", "Contact"];
-
+export function StickyNavbar({
+  darkMode,
+  onToggleDarkMode,
+  onNavigate,
+  activeSection,
+}: StickyNavbarProps) {
   return (
     <header
       className={
@@ -23,6 +32,10 @@ export function StickyNavbar() {
       >
         <a
           href="#home"
+          onClick={(event) => {
+            event.preventDefault();
+            onNavigate("home");
+          }}
           className={
             darkMode
               ? "text-base font-semibold tracking-tight text-white"
@@ -40,22 +53,35 @@ export function StickyNavbar() {
                 : "hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex"
             }
           >
-            {navItems.map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                className={
-                  darkMode ? "hover:text-violet-300" : "hover:text-violet-600"
-                }
-              >
-                {item}
-              </a>
-            ))}
+            {navItems.map((item) => {
+              const active = item.id === activeSection;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onNavigate(item.id);
+                  }}
+                  className={
+                    darkMode
+                      ? active
+                        ? "font-semibold text-violet-300"
+                        : "hover:text-violet-300"
+                      : active
+                        ? "font-semibold text-violet-600"
+                        : "hover:text-violet-600"
+                  }
+                >
+                  {item.label}
+                </a>
+              );
+            })}
           </div>
 
           <button
             type="button"
-            onClick={() => setDarkMode((prev) => !prev)}
+            onClick={onToggleDarkMode}
             aria-label="Toggle dark mode"
             className={
               darkMode
@@ -64,8 +90,7 @@ export function StickyNavbar() {
             }
           >
             {darkMode ? "Light" : "Dark"}
-          </button>
-        </div>
+          </button>        </div>
       </nav>
     </header>
   );
