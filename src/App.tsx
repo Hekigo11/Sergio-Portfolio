@@ -7,7 +7,7 @@ const sections = {
   home: { label: "Home", x: 0, y: 0 },
   about: { label: "About", x: 0, y: -1400 },
   projects: { label: "Projects", x: 1800, y: 0 },
-  connect: { label: "Connect", x: -1800, y: 0 },
+  connect: { label: "Connect", x: -2000, y: -1000 },
 } as const;
 
 export type SectionId = keyof typeof sections;

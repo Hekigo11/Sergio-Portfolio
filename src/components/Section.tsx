@@ -1,8 +1,9 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 
 interface SectionProps {
   id: string;
   label: string;
+  position: { x: number; y: number };
   darkMode: boolean;
   visible: boolean;
   className?: string;
@@ -27,22 +28,30 @@ const filler = [
 ];
 
 export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
-  { id, label, darkMode, visible, className = "" },
+  { id, label, position, darkMode, visible, className = "" },
   ref,
 ) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (visible) {
+      scrollContainerRef.current?.scrollTo({ top: 0 });
+    }
+  }, [visible]);
+
   return (
     <section
       ref={ref}
       id={id}
       aria-hidden={!visible}
-      className={`absolute left-1/2 top-1/2 ${className}`}
+      className={`absolute ${className}`}
       style={{
-        visibility: visible ? "visible" : "hidden",
-        transform: "translate(-50%, -50%)",
-        zIndex: visible ? 1 : -1,
+        left: position.x,
+        top: position.y,
       }}
     >
       <div
+        ref={scrollContainerRef}
         className={
           darkMode
             ? "flex h-[calc(100vh-4rem)] w-screen flex-col overflow-y-auto overscroll-contain bg-slate-950"
