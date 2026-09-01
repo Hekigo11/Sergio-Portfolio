@@ -1,3 +1,5 @@
+import { motion } from "motion/react";
+
 interface StickyNavbarProps {
   darkMode: boolean;
   onToggleDarkMode: () => void;
@@ -83,14 +85,33 @@ export function StickyNavbar({
             type="button"
             onClick={onToggleDarkMode}
             aria-label="Toggle dark mode"
+            aria-pressed={darkMode}
             className={
               darkMode
-                ? "rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 shadow-sm hover:border-violet-500 hover:text-violet-300"
-                : "rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:border-violet-400 hover:text-violet-600"
+                ? "flex h-8 w-14 items-center justify-end rounded-full border border-slate-600 bg-slate-800 p-1 shadow-sm hover:border-violet-500"
+                : "flex h-8 w-14 items-center justify-start rounded-full border border-slate-200 bg-slate-100 p-1 shadow-sm hover:border-violet-400"
             }
           >
-            {darkMode ? "Light" : "Dark"}
-          </button>        </div>
+            <motion.span
+              layout
+              transition={{
+                type: "spring",
+                visualDuration: 0.2,
+                bounce: 0.2,
+              }}
+              className={
+                darkMode
+                  ? "flex h-6 w-6 items-center justify-center rounded-full bg-violet-300 text-sm leading-none text-slate-950"
+                  : "flex h-6 w-6 items-center justify-center rounded-full bg-violet-600 text-sm leading-none text-white"
+              }
+            >
+              <span aria-hidden="true">{darkMode ? "☾" : "☀"}</span>
+            </motion.span>
+            <span className="sr-only">
+              {darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            </span>
+          </button>
+        </div>
       </nav>
     </header>
   );

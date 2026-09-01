@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "motion/react";
 import Section from "./Section";
 
 export interface SectionPosition {
@@ -11,8 +12,8 @@ interface SpatialCanvasProps {
   darkMode: boolean;
 }
 
-const TRANSITION_MS = 700;
-const EASING_TRAVEL = "cubic-bezier(0.22, 1, 0.36, 1)";
+const TRANSITION_SECONDS = 0.7;
+const EASING_TRAVEL = [0.22, 1, 0.36, 1] as const;
 
 export function SpatialCanvas({
   activeSection,
@@ -20,15 +21,18 @@ export function SpatialCanvas({
   darkMode,
 }: SpatialCanvasProps) {
   const activePosition = sections[activeSection];
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full overflow-hidden">
-      <div
-        className="absolute inset-0 will-change-transform motion-reduce:transition-none"
-        style={{
-          transform: `translate3d(${activePosition.x * -1}px, ${activePosition.y * -1}px, 0)`,
-          transition: `transform ${TRANSITION_MS}ms ${EASING_TRAVEL}`,
-        }}
+      <motion.div
+        className="absolute inset-0 will-change-transform"
+        animate={{ x: -activePosition.x, y: -activePosition.y }}
+        transition={
+          shouldReduceMotion
+            ? { duration: 0 }
+            : { duration: TRANSITION_SECONDS, ease: EASING_TRAVEL }
+        }
       >
         {Object.entries(sections).map(([id, section]) => (
           <Section
@@ -40,7 +44,7 @@ export function SpatialCanvas({
             visible={id === activeSection}
           />
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
