@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useRef, type ReactNode } from "react";
 
 interface SectionProps {
   id: string;
@@ -6,6 +6,7 @@ interface SectionProps {
   position: { x: number; y: number };
   darkMode: boolean;
   visible: boolean;
+  children?: ReactNode;
   className?: string;
 }
 
@@ -28,7 +29,7 @@ const filler = [
 ];
 
 export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
-  { id, label, position, darkMode, visible, className = "" },
+  { id, label, position, darkMode, visible, children, className = "" },
   ref,
 ) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -58,28 +59,32 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
             : "flex h-[calc(100vh-4rem)] w-screen flex-col overflow-y-auto overscroll-contain bg-slate-50"
         }
       >
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <h2
-            className={
-              darkMode
-                ? "text-4xl font-bold tracking-tight text-slate-100 sm:text-5xl"
-                : "text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl"
-            }
-          >
-            {label}
-          </h2>
-        </div>
+        {children ?? (
+          <>
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <h2
+                className={
+                  darkMode
+                    ? "text-4xl font-bold tracking-tight text-slate-100 sm:text-5xl"
+                    : "text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl"
+                }
+              >
+                {label}
+              </h2>
+            </div>
 
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-6 pb-20">
-          {filler.map((line) => (
-            <p
-              key={line}
-              className={darkMode ? "text-slate-400" : "text-slate-500"}
-            >
-              {line}
-            </p>
-          ))}
-        </div>
+            <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-6 pb-20">
+              {filler.map((line) => (
+                <p
+                  key={line}
+                  className={darkMode ? "text-slate-400" : "text-slate-500"}
+                >
+                  {line}
+                </p>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

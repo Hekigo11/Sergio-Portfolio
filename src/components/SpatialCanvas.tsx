@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "motion/react";
 import Section from "./Section";
+import Home from "./sections/Home";
 
 export interface SectionPosition {
   x: number;
@@ -10,6 +11,7 @@ interface SpatialCanvasProps {
   activeSection: string;
   sections: Record<string, SectionPosition & { label: string }>;
   darkMode: boolean;
+  onToggleDarkMode: () => void;
 }
 
 const TRANSITION_SECONDS = 0.7;
@@ -19,6 +21,7 @@ export function SpatialCanvas({
   activeSection,
   sections,
   darkMode,
+  onToggleDarkMode,
 }: SpatialCanvasProps) {
   const activePosition = sections[activeSection];
   const shouldReduceMotion = useReducedMotion();
@@ -42,7 +45,11 @@ export function SpatialCanvas({
             position={section}
             darkMode={darkMode}
             visible={id === activeSection}
-          />
+          >
+            {id === "home" ? (
+              <Home darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
+            ) : undefined}
+          </Section>
         ))}
       </motion.div>
     </div>

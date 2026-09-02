@@ -37,6 +37,7 @@ function App() {
         activeSection={activeSection}
         sections={sections}
         darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode((prev) => !prev)}
       />
     </div>
   );
