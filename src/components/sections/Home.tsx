@@ -44,17 +44,23 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
         >
           Computer Engineer
         </h3>
+        <h4
+          className={
+            darkMode
+              ? "mt-4 text-xl max-w-prose leading-7 text-slate-300"
+              : "mt-4 text-xl max-w-prose leading-7 text-slate-600"
+          }
+        >
+          Software Engineering & Automation Enthusiast
+        </h4>
         <p
           className={
             darkMode
-              ? "mt-6 max-w-prose text-base leading-7 text-slate-300"
-              : "mt-6 max-w-prose text-base leading-7 text-slate-600"
+              ? "mt-2 max-w-prose text-base leading-7 text-slate-300 italic"
+              : "mt-2 max-w-prose text-base leading-7 text-slate-600 italic"
           }
         >
-          Welcome to my portfolio website! I am a passionate Computer Engineer
-          with a strong interest in software development and technology. Here,
-          you can explore my projects, skills, and experiences that showcase my
-          expertise in the field.
+          Building practical software, automation, and intelligent systems.
         </p>
       </div>
       <div className="flex flex-col items-center justify-center gap-5 lg:items-end">

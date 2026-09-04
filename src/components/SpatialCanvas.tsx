@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "motion/react";
 import Section from "./Section";
+import About from "./sections/About";
 import Home from "./sections/Home";
 
 export interface SectionPosition {
@@ -48,6 +49,8 @@ export function SpatialCanvas({
           >
             {id === "home" ? (
               <Home darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
+            ) : id === "about" ? (
+              <About darkMode={darkMode} />
             ) : undefined}
           </Section>
         ))}

@@ -9,8 +9,8 @@ interface StickyNavbarProps {
 
 const navItems = [
   { label: "Home", id: "home" },
-  { label: "Projects", id: "projects" },
   { label: "About Me", id: "about" },
+  { label: "Projects", id: "projects" },
   { label: "Connect", id: "connect" },
 ];
 
