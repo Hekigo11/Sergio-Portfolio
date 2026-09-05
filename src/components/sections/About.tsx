@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import WordCarousel from "../WordCarousel";
 
 interface AboutProps {
   darkMode: boolean;
@@ -10,6 +11,12 @@ const focusAreas = [
   "Robotics",
   "Internet of Things",
   "Embedded Systems",
+  "Computer Vision",
+  "Machine Learning",
+  "Database Design and Management",
+  "Web Development",
+  "UI/UX Design",
+  "Hardware Design",
 ];
 
 const skillGroups = [
@@ -71,19 +78,22 @@ const skillGroups = [
       "MQTT",
     ],
   },
-  {
-    title: "Soft Skills",
-    skills: [
-      "Adaptable",
-      "Self-Taught",
-      "Interpersonal",
-      "Critical Thinker",
-      "Problem-Solving",
-      "Project Management",
-      "Collaboration",
-      "Time Management",
-    ],
-  },
+];
+
+const softSkills = [
+  "Adaptable",
+  "Self-Taught",
+  "Interpersonal",
+  "Critical Thinker",
+  "Problem-Solving",
+  "Project Management",
+  "Collaboration",
+  "Time Management",
+];
+
+const allSkillGroups = [
+  ...skillGroups,
+  { title: "Soft Skills", skills: softSkills },
 ];
 
 const education = [
@@ -91,6 +101,7 @@ const education = [
     period: "2022 - 2026",
     degree: "Bachelor of Science in Computer Engineering",
     institution: "Adamson University",
+    honors: ["Academic Merit Awardee", "DOST Scholar"],
   },
 ];
 
@@ -100,8 +111,26 @@ const experience = [
     role: "Intern - Project LODI",
     organization:
       "Department of Science and Technology - Information Technology Division",
-    summary:
-      "Supported software requirements analysis and designed Figma wireframes and interactive prototypes for management and administrative workflows.",
+    roles: [
+      {
+        title: "QA Tester",
+        period: "Jul - Aug 2025",
+        bullets: [
+          "Executed functional and system testing on internal software applications, validating inputs, workflows, forms, and system functionality against technical specifications.",
+          "Developed and executed test cases and scenarios for multiple system modules, documenting results and identifying functional issues.",
+          "Performed validation checks for data entry, error handling, submissions, and update functionalities to ensure system reliability.",
+        ],
+      },
+      {
+        title: "Systems Analyst",
+        period: "Aug - Sep 2025",
+        bullets: [
+          "Studied software requirements and system specifications to understand workflows, functional scope, and user requirements.",
+          "Designed wireframes and interactive prototypes in Figma for user management, task tracking, reporting, and administrative system functions.",
+          "Developed interactive prototype flows including modal interactions, search functionality, dynamic results, and dashboard layouts to communicate system behavior and improve usability.",
+        ],
+      },
+    ],
   },
 
   {
@@ -150,7 +179,7 @@ const About = ({ darkMode }: AboutProps) => {
               The Exhilaration of Developing Creative Solutions and Seeing Them
               Through
             </h2>
-            <div
+            {/* <div
               className={`mx-auto mt-10 h-px w-20 ${darkMode ? "bg-slate-700" : "bg-slate-300"}`}
             />
             <p
@@ -158,99 +187,61 @@ const About = ({ darkMode }: AboutProps) => {
             >
               That&apos;s what inspires me to explore. That&apos;s what keeps me
               building.
-            </p>
+            </p> */}
           </div>
         </div>
       </section>
 
-      <section className={`min-h-[calc(100vh-4rem)] border-t ${line}`}>
-        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-8">
-          <h2 className="text-5xl font-bold tracking-tight sm:text-5xl flex items-center gap-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              className="lucide lucide-graduation-cap w-10 h-10 text-primary"
-              aria-hidden="true"
-            >
-              <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path>
-              <path d="M22 10v6"></path>
-              <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path>
-            </svg>
+      <section className={`border-t ${line}`}>
+        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-8 lg:py-24">
+          <h2 className="text-5xl font-bold tracking-tight sm:text-5xl">
             Education
           </h2>
-          <div>
-            {education.map((edu, index) => (
-              <div key={index}>
-                <h4
-                  className={`mt-4 text-lg font-medium tracking-tight ${muted}`}
-                >
-                  {edu.period}
-                </h4>
-                <h3
-                  className={`mt-6 text-3xl font-semibold tracking-tight ${muted}`}
-                >
-                  {edu.institution}
-                </h3>
-                <h4
-                  className={`mt-2 text-xl font-medium tracking-tight ${muted}`}
-                >
-                  {edu.degree}
-                </h4>
-              </div>
-            ))}
-          </div>
-          <ol
-            className={`mt-12 grid border-t ${line} sm:grid-cols-2 lg:grid-cols-5`}
+          <div
+            className={`mt-12 grid gap-12 border-t pt-12 ${line} lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-center lg:gap-16`}
           >
-            {focusAreas.map((area, index) => (
-              <li
-                key={area}
-                className={`border-b py-6 pr-4 text-lg font-medium sm:pr-6 ${line}`}
-              >
-                <span className={`mr-3 text-sm tabular-nums ${muted}`}>
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                {area}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className={`min-h-[calc(100vh-4rem)] border-t ${line}`}>
-        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-8">
-          <h2 className="text-5xl font-bold tracking-tight sm:text-5xl">
-            Skills
-          </h2>
-          <div className={`mt-12 grid border-t ${line} lg:grid-cols-3`}>
-            {skillGroups.map((group) => (
-              <div
-                key={group.title}
-                className={`border-b py-8 lg:border-r lg:px-8 lg:first:pl-0 lg:last:border-r-0 ${line}`}
-              >
-                <h3 className={`text-base font-semibold ${muted}`}>
-                  {group.title}
-                </h3>
-                <ul className="mt-6 space-y-2 text-xl font-medium tracking-tight">
-                  {group.skills.map((skill) => (
-                    <li key={skill}>{skill}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <div>
+              {education.map((edu, index) => (
+                <div key={index}>
+                  <h4 className={`text-lg font-medium tracking-tight ${muted}`}>
+                    {edu.period}
+                  </h4>
+                  <h3
+                    className={`mt-2 text-3xl font-semibold tracking-tight ${muted}`}
+                  >
+                    {edu.institution}
+                  </h3>
+                  <h4
+                    className={`mt-2 text-xl font-medium tracking-tight ${muted}`}
+                  >
+                    {edu.degree}
+                  </h4>
+                  {edu.honors && edu.honors.length > 0 && (
+                    <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+                      {edu.honors.map((honor) => (
+                        <li
+                          key={honor}
+                          className={`text-sm font-medium tracking-tight ${muted}`}
+                        >
+                          {honor}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div
+              className={`border-t pt-10 lg:border-t-0 lg:border-l lg:pl-16 lg:pt-0 ${line}`}
+            >
+              <WordCarousel words={focusAreas} darkMode={darkMode} />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className={`min-h-[calc(100vh-4rem)] border-t ${line}`}>
-        <div className="mx-auto w-full max-w-6xl px-6 py-20 sm:px-10 lg:px-8">
+      <section className={`border-t ${line}`}>
+        <div className="mx-auto w-full max-w-6xl px-6 py-20 sm:px-10 lg:px-8 lg:py-24">
           <h2 className="text-5xl font-bold tracking-tight sm:text-5xl">
             Experience
           </h2>
@@ -266,24 +257,100 @@ const About = ({ darkMode }: AboutProps) => {
                   delay: index * 0.06,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className={`grid gap-5 border-b py-8 sm:grid-cols-[9rem_1fr] sm:gap-10 lg:grid-cols-[11rem_minmax(0,1fr)_minmax(15rem,0.8fr)] ${line}`}
+                className={`flex flex-col gap-6 border-b py-10 lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.8fr)] lg:items-start lg:gap-10 ${line}`}
               >
-                <p className={`text-sm font-medium tabular-nums ${muted}`}>
-                  {item.period}
-                </p>
-                <div>
+                <div className="lg:pr-4">
                   <h3 className="text-2xl font-semibold tracking-tight">
                     {item.role}
                   </h3>
-                  <p className={`mt-2 text-base ${muted}`}>
+                  <p className={`mt-3 text-base leading-7 ${muted}`}>
                     {item.organization}
                   </p>
+                  <p
+                    className={`mt-3 text-sm font-medium tabular-nums ${muted}`}
+                  >
+                    {item.period}
+                  </p>
                 </div>
-                <p className={`max-w-prose text-base leading-7 ${muted}`}>
-                  {item.summary}
-                </p>
+                {item.roles ? (
+                  <div className="flex max-w-3xl flex-col gap-8">
+                    {item.roles.map((role) => (
+                      <div key={role.title} className="space-y-3">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+                          <h4 className="text-base font-semibold tracking-tight">
+                            {role.title}
+                          </h4>
+                          <span
+                            className={`text-xs font-medium tabular-nums ${muted}`}
+                          >
+                            {role.period}
+                          </span>
+                        </div>
+                        <ul
+                          className={`list-disc space-y-2.5 pl-5 text-base leading-7 ${muted}`}
+                        >
+                          {role.bullets.map((bullet) => (
+                            <li key={bullet}>{bullet}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={`max-w-prose text-base leading-7 ${muted}`}>
+                    {item.summary}
+                  </p>
+                )}
               </motion.article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`border-t ${line}`}>
+        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-8 lg:py-24">
+          <h2 className="text-5xl font-bold tracking-tight sm:text-5xl">
+            Skills
+          </h2>
+          <div className="mt-12">
+            <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-6">
+              {allSkillGroups.map((group) => (
+                <div
+                  key={group.title}
+                  className={`flex h-full w-70 shrink-0 snap-start flex-col border p-6 sm:w-80 ${line}`}
+                >
+                  <h3 className={`text-base font-semibold ${muted}`}>
+                    {group.title}
+                  </h3>
+                  <ul className="mt-6 flex flex-1 flex-wrap content-start gap-x-3 gap-y-2 text-xl font-medium tracking-tight">
+                    {group.skills.map((skill, index) => (
+                      <li key={skill} className="flex items-center gap-3">
+                        {skill}
+                        {index < group.skills.length - 1 && (
+                          <span
+                            aria-hidden="true"
+                            className={`text-sm ${muted}`}
+                          >
+                            &middot;
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  <p
+                    className={`mt-8 text-xs font-medium uppercase tracking-wide ${muted}`}
+                  >
+                    {group.skills.length} {group.title}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p
+              className={`mt-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide ${muted}`}
+            >
+              <span aria-hidden="true">&bull;</span>
+              Scroll to explore
+            </p>
           </div>
         </div>
       </section>
