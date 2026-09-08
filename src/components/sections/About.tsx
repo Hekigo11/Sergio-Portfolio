@@ -1,5 +1,8 @@
 import { motion } from "motion/react";
 import WordCarousel from "../WordCarousel";
+import MetaLabel from "../ui/MetaLabel";
+import SectionHeading from "../ui/SectionHeading";
+import Tag from "../ui/Tag";
 
 interface AboutProps {
   darkMode: boolean;
@@ -143,109 +146,81 @@ const experience = [
 ];
 
 const About = ({ darkMode }: AboutProps) => {
-  const surface = darkMode
-    ? "bg-slate-950 text-slate-100"
-    : "bg-slate-50 text-slate-900";
-  const muted = darkMode ? "text-slate-400" : "text-slate-600";
-  const line = darkMode ? "border-slate-800" : "border-slate-200";
-
   return (
-    <div className={surface}>
+    <div className="bg-bg text-ink">
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-end px-6 py-14 sm:px-10 lg:px-8 lg:py-20">
         <div className="max-w-4xl pb-8">
-          <h1 className="text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
+          <h1 className="font-display text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
             Bringing visualizations to reality.
           </h1>
-          <p className={`mt-8 max-w-2xl text-lg leading-8 sm:text-xl ${muted}`}>
+          <p className="mt-8 max-w-2xl text-lg leading-8 text-ink-muted sm:text-xl">
             A growing practice in turning ideas into clear, practical, and
             human-centered systems.
           </p>
         </div>
       </section>
 
-      <section className={`min-h-[calc(100vh-4rem)] border-t ${line}`}>
+      <section className="min-h-[calc(100vh-4rem)] border-t border-border">
         <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center px-6 py-20 text-center sm:px-10 lg:px-8">
           <div className="max-w-5xl">
-            <div
-              className={`rounded-full p-4 w-fit m-auto ${darkMode ? "bg-slate-700" : "bg-slate-200"}`}
-            >
-              <p
-                className={`text-lg font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}
-              >
-                My Inspiration:
-              </p>
-            </div>
-            <h2 className="text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
+            <MetaLabel size="sm" as="p">
+              My Inspiration:
+            </MetaLabel>
+            <h2 className="mt-10 font-display text-4xl leading-[1.08] font-bold tracking-tight sm:text-6xl lg:text-7xl">
               The Exhilaration of Developing Creative Solutions and Seeing Them
               Through
             </h2>
-            {/* <div
-              className={`mx-auto mt-10 h-px w-20 ${darkMode ? "bg-slate-700" : "bg-slate-300"}`}
-            />
-            <p
-              className={`mx-auto mt-10 max-w-3xl text-xl leading-8 sm:text-2xl sm:leading-9 ${muted}`}
-            >
-              That&apos;s what inspires me to explore. That&apos;s what keeps me
-              building.
-            </p> */}
           </div>
         </div>
       </section>
 
-      <section className={`border-t ${line}`}>
-        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-8 lg:py-24">
-          <h2 className="text-5xl font-bold tracking-tight sm:text-5xl">
-            Education
-          </h2>
-          <div
-            className={`mt-12 grid gap-12 border-t pt-12 ${line} lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-center lg:gap-16`}
-          >
-            <div>
+      <section className="border-t border-border">
+        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 pt-24 pb-20 sm:px-10 lg:px-8 lg:pt-28 lg:pb-24">
+          <SectionHeading size="lg">Education</SectionHeading>
+          <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-center lg:gap-16">
+            <div className="flex flex-col gap-10">
               {education.map((edu, index) => (
-                <div key={index}>
-                  <h4 className={`text-lg font-medium tracking-tight ${muted}`}>
+                <div
+                  key={index}
+                  className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-8"
+                >
+                  <MetaLabel
+                    size="custom"
+                    className="text-xs tracking-[0.12em] tabular-nums sm:pt-3 sm:text-right"
+                  >
                     {edu.period}
-                  </h4>
-                  <h3
-                    className={`mt-2 text-3xl font-semibold tracking-tight ${muted}`}
-                  >
-                    {edu.institution}
-                  </h3>
-                  <h4
-                    className={`mt-2 text-xl font-medium tracking-tight ${muted}`}
-                  >
-                    {edu.degree}
-                  </h4>
-                  {edu.honors && edu.honors.length > 0 && (
-                    <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-                      {edu.honors.map((honor) => (
-                        <li
-                          key={honor}
-                          className={`text-sm font-medium tracking-tight ${muted}`}
-                        >
-                          {honor}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  </MetaLabel>
+                  <div>
+                    <h3 className="font-display text-3xl font-bold tracking-tight text-ink">
+                      {edu.institution}
+                    </h3>
+                    <p className="mt-2 text-lg leading-7 text-ink-muted">
+                      {edu.degree}
+                    </p>
+                    {edu.honors && edu.honors.length > 0 && (
+                      <ul className="mt-5 flex flex-wrap gap-2">
+                        {edu.honors.map((honor) => (
+                          <li key={honor}>
+                            <Tag>{honor}</Tag>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
-            <div
-              className={`border-t pt-10 lg:border-t-0 lg:border-l lg:pl-16 lg:pt-0 ${line}`}
-            >
+            <div className="border-t border-border pt-10 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-16">
               <WordCarousel words={focusAreas} darkMode={darkMode} />
             </div>
           </div>
         </div>
       </section>
 
-      <section className={`border-t ${line}`}>
-        <div className="mx-auto w-full max-w-6xl px-6 py-20 sm:px-10 lg:px-8 lg:py-24">
-          <h2 className="text-5xl font-bold tracking-tight sm:text-5xl">
-            Experience
-          </h2>
-          <div className={`mt-12 border-t ${line}`}>
+      <section className="border-t border-border">
+        <div className="mx-auto w-full max-w-6xl px-6 pt-24 pb-20 sm:px-10 lg:px-8 lg:pt-28 lg:pb-24">
+          <SectionHeading size="lg">Experience</SectionHeading>
+          <div className="mt-12">
             {experience.map((item, index) => (
               <motion.article
                 key={`${item.role}-${item.period}`}
@@ -257,100 +232,103 @@ const About = ({ darkMode }: AboutProps) => {
                   delay: index * 0.06,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className={`flex flex-col gap-6 border-b py-10 lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.8fr)] lg:items-start lg:gap-10 ${line}`}
+                className="grid gap-4 border-b border-border py-12 first:pt-0 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-8 lg:gap-12"
               >
-                <div className="lg:pr-4">
-                  <h3 className="text-2xl font-semibold tracking-tight">
+                <MetaLabel
+                  size="custom"
+                  className="text-xs tracking-[0.12em] tabular-nums sm:pt-3 sm:text-right"
+                >
+                  {item.period}
+                </MetaLabel>
+
+                <div className="max-w-3xl">
+                  <h3 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
                     {item.role}
                   </h3>
-                  <p className={`mt-3 text-base leading-7 ${muted}`}>
-                    {item.organization}
-                  </p>
-                  <p
-                    className={`mt-3 text-sm font-medium tabular-nums ${muted}`}
-                  >
-                    {item.period}
-                  </p>
-                </div>
-                {item.roles ? (
-                  <div className="flex max-w-3xl flex-col gap-8">
-                    {item.roles.map((role) => (
-                      <div key={role.title} className="space-y-3">
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
-                          <h4 className="text-base font-semibold tracking-tight">
-                            {role.title}
-                          </h4>
-                          <span
-                            className={`text-xs font-medium tabular-nums ${muted}`}
-                          >
-                            {role.period}
-                          </span>
+                  {item.organization.trim() && (
+                    <p className="mt-2 text-base leading-7 text-ink-muted">
+                      {item.organization}
+                    </p>
+                  )}
+
+                  {item.roles ? (
+                    <div className="mt-8 flex flex-col gap-8 border-l border-border pl-6">
+                      {item.roles.map((role) => (
+                        <div key={role.title}>
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                            <h4 className="text-base font-semibold tracking-tight text-ink">
+                              {role.title}
+                            </h4>
+                            <MetaLabel className="shrink-0 tabular-nums">
+                              {role.period}
+                            </MetaLabel>
+                          </div>
+                          <ul className="mt-3 list-disc space-y-2.5 pl-5 text-base leading-7 text-ink-muted marker:text-ink-faint">
+                            {role.bullets.map((bullet) => (
+                              <li key={bullet}>{bullet}</li>
+                            ))}
+                          </ul>
                         </div>
-                        <ul
-                          className={`list-disc space-y-2.5 pl-5 text-base leading-7 ${muted}`}
-                        >
-                          {role.bullets.map((bullet) => (
-                            <li key={bullet}>{bullet}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className={`max-w-prose text-base leading-7 ${muted}`}>
-                    {item.summary}
-                  </p>
-                )}
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-4 max-w-prose text-base leading-7 text-ink-muted">
+                      {item.summary}
+                    </p>
+                  )}
+                </div>
               </motion.article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className={`border-t ${line}`}>
-        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 py-20 sm:px-10 lg:px-8 lg:py-24">
-          <h2 className="text-5xl font-bold tracking-tight sm:text-5xl">
-            Skills
-          </h2>
+      <section className="border-t border-border">
+        <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 pt-24 pb-20 sm:px-10 lg:px-8 lg:pt-28 lg:pb-24">
+          <SectionHeading size="lg">Skills</SectionHeading>
           <div className="mt-12">
             <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-6">
               {allSkillGroups.map((group) => (
                 <div
                   key={group.title}
-                  className={`flex h-full w-70 shrink-0 snap-start flex-col border p-6 sm:w-80 ${line}`}
+                  className="flex w-70 shrink-0 snap-start flex-col rounded-lg border border-border bg-surface p-6 sm:w-80"
                 >
-                  <h3 className={`text-base font-semibold ${muted}`}>
-                    {group.title}
-                  </h3>
-                  <ul className="mt-6 flex flex-1 flex-wrap content-start gap-x-3 gap-y-2 text-xl font-medium tracking-tight">
+                  <MetaLabel as="h3">{group.title}</MetaLabel>
+                  <div className="mt-4 h-px w-full bg-border" />
+                  <ul className="mt-5 flex flex-1 flex-wrap content-start gap-x-3 gap-y-2 text-lg font-medium tracking-tight text-ink">
                     {group.skills.map((skill, index) => (
                       <li key={skill} className="flex items-center gap-3">
                         {skill}
                         {index < group.skills.length - 1 && (
-                          <span
-                            aria-hidden="true"
-                            className={`text-sm ${muted}`}
-                          >
+                          <span aria-hidden="true" className="text-sm text-ink-faint">
                             &middot;
                           </span>
                         )}
                       </li>
                     ))}
                   </ul>
-                  <p
-                    className={`mt-8 text-xs font-medium uppercase tracking-wide ${muted}`}
-                  >
+                  <div className="mt-6 h-px w-full bg-border" />
+                  <MetaLabel className="mt-4 tabular-nums">
                     {group.skills.length} {group.title}
-                  </p>
+                  </MetaLabel>
                 </div>
               ))}
             </div>
-            <p
-              className={`mt-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide ${muted}`}
-            >
-              <span aria-hidden="true">&bull;</span>
+            <MetaLabel className="mt-4 flex items-center gap-2">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-3 w-3"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
               Scroll to explore
-            </p>
+            </MetaLabel>
           </div>
         </div>
       </section>

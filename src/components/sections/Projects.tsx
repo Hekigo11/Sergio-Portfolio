@@ -13,6 +13,9 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import MetaLabel from "../ui/MetaLabel";
+import SectionHeading from "../ui/SectionHeading";
+import Tag from "../ui/Tag";
 
 interface ProjectsProps {
   darkMode: boolean;
@@ -144,7 +147,18 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
             aria-label="Previous image"
             className="absolute top-1/2 left-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65 sm:h-7 sm:w-7"
           >
-            <span aria-hidden="true">‹</span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
           </button>
           <button
             type="button"
@@ -155,7 +169,18 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
             aria-label="Next image"
             className="absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65 sm:h-7 sm:w-7"
           >
-            <span aria-hidden="true">›</span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
           </button>
           <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1.5 px-3 pb-2">
             {images.map((image, i) => (
@@ -297,33 +322,19 @@ const projectitems: ProjectItem[] = [
 interface ThemeClasses {
   cardClasses: string;
   muted: string;
-  subtle: string;
   line: string;
   surfaceBg: string;
-  darkMode: boolean;
 }
 
-function PlaceholderBox({
-  muted,
-  darkMode,
-}: {
-  muted: string;
-  darkMode: boolean;
-}) {
+function PlaceholderBox({ muted }: { muted: string }) {
   return (
     <div className="flex h-full items-center justify-center p-6 text-center">
       <div>
-        <div
-          className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full border text-lg font-semibold ${
-            darkMode
-              ? "border-slate-500 text-slate-200"
-              : "border-slate-400/60 text-slate-600"
-          }`}
-        >
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border-strong text-lg font-semibold text-ink-muted">
           +
         </div>
         <p
-          className={`mt-3 text-[10px] font-medium uppercase tracking-[0.2em] ${muted}`}
+          className={`mt-3 text-[10px] font-medium tracking-[0.2em] uppercase ${muted}`}
         >
           Preview
         </p>
@@ -342,80 +353,63 @@ function MobileProjectCard({
   images: string[];
   theme: ThemeClasses;
 }) {
-  const { cardClasses, muted, subtle, line, surfaceBg, darkMode } = theme;
+  const { cardClasses, muted, line, surfaceBg } = theme;
   const hasImage = images.length > 0;
   const role = project.role ?? DEFAULT_ROLE;
-  const roleBadgeClasses = darkMode
-    ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-300"
-    : "border-cyan-500/30 bg-cyan-50 text-cyan-700";
 
   return (
     <article
-      className={`flex w-full flex-col overflow-hidden rounded-2xl border p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] ${cardClasses}`}
+      className={`flex w-full flex-col overflow-hidden rounded-xl border p-4 ${cardClasses}`}
     >
       <div
-        className={`h-48 shrink-0 overflow-hidden rounded-xl border ${surfaceBg} ${line}`}
+        className={`h-48 shrink-0 overflow-hidden rounded-lg border ${surfaceBg} ${line}`}
       >
         {hasImage ? (
           <ProjectImageCarousel images={images} alt={project.title} />
         ) : (
-          <PlaceholderBox muted={muted} darkMode={darkMode} />
+          <PlaceholderBox muted={muted} />
         )}
       </div>
 
       <div className="mt-6 flex flex-col">
-        <span
-          className={`mb-3 inline-flex w-fit items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide uppercase ${roleBadgeClasses}`}
-        >
-          {role}
-        </span>
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-xl font-semibold tracking-tight">
-            {project.title}
-          </h3>
+        <div className="flex items-center justify-between gap-3">
+          <Tag tone="brass">{role}</Tag>
           {project.timeline && (
-            <span
-              className={`shrink-0 text-xs font-medium uppercase tracking-[0.2em] ${muted}`}
-            >
+            <MetaLabel className="shrink-0 tabular-nums">
               {project.timeline}
-            </span>
+            </MetaLabel>
           )}
         </div>
 
-        <p className={`mt-4 text-sm leading-6 ${muted}`}>
+        <h3 className="mt-4 font-display text-xl leading-tight font-bold tracking-tight text-ink">
+          {project.title}
+        </h3>
+
+        <p className={`mt-3 text-sm leading-6 ${muted}`}>
           {project.description}
         </p>
 
+        <div className="mt-6 h-px w-full bg-border" />
+
         <div className="mt-5">
-          <p
-            className={`mb-2 text-[10px] font-medium uppercase tracking-[0.22em] ${muted}`}
-          >
-            Key features
-          </p>
-          <ul className={`space-y-2 text-sm leading-6 ${muted}`}>
+          <MetaLabel as="p">Key features</MetaLabel>
+          <ul className={`mt-3 space-y-2 text-sm leading-6 ${muted}`}>
             {project.keyFeatures.map((feature) => (
-              <li key={feature} className="flex gap-2">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-500" />
+              <li key={feature} className="flex gap-2.5">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brass" />
                 <span>{feature}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="mt-5">
-          <p
-            className={`mb-2 text-[10px] font-medium uppercase tracking-[0.22em] ${muted}`}
-          >
-            Stack
-          </p>
-          <div className="flex flex-wrap gap-2">
+        <div className="mt-6">
+          <MetaLabel as="p">Stack</MetaLabel>
+          <div className="mt-3 flex flex-wrap gap-2">
             {project.technologies.map((tech) => (
-              <span
-                key={tech}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium ${subtle}`}
-              >
+              <Tag key={tech} variant="stack">
                 {tech}
-              </span>
+              </Tag>
             ))}
           </div>
         </div>
@@ -450,13 +444,10 @@ function CoverflowProjectCard({
   sidePadding: number;
   onSelect: () => void;
 }) {
-  const { cardClasses, muted, subtle, line, surfaceBg, darkMode } = theme;
+  const { cardClasses, muted, line, surfaceBg } = theme;
   const { containerRef, contentRef, scale: fitScale } = useFitScale();
   const hasImage = images.length > 0;
   const role = project.role ?? DEFAULT_ROLE;
-  const roleBadgeClasses = darkMode
-    ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-300"
-    : "border-cyan-500/30 bg-cyan-50 text-cyan-700";
 
   const cardCenter = sidePadding + index * (cardWidth + gap) + cardWidth / 2;
   const distance = useTransform(
@@ -496,15 +487,15 @@ function CoverflowProjectCard({
         tabIndex={0}
         aria-label={`View ${project.title}`}
         style={{ scale, opacity }}
-        className={`flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl border p-5 shadow-[0_20px_60px_rgba(15,23,42,0.12)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
+        className={`flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border p-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
       >
         <div
-          className={`h-56 w-full shrink-0 self-center overflow-hidden rounded-xl border sm:h-64 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
+          className={`h-56 w-full shrink-0 self-center overflow-hidden rounded-lg border sm:h-64 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
         >
           {hasImage ? (
             <ProjectImageCarousel images={images} alt={project.title} />
           ) : (
-            <PlaceholderBox muted={muted} darkMode={darkMode} />
+            <PlaceholderBox muted={muted} />
           )}
         </div>
 
@@ -513,62 +504,74 @@ function CoverflowProjectCard({
           className="mt-6 min-h-0 flex-1 overflow-hidden lg:mt-0"
         >
           <div ref={contentRef} style={{ "--fit": fitScale } as CSSProperties}>
-            <span
-              className={`mb-[calc(0.5rem*var(--fit))] inline-flex w-fit items-center rounded-full border px-[calc(0.75rem*var(--fit))] py-[calc(0.25rem*var(--fit))] text-[calc(0.6875rem*var(--fit))] font-semibold tracking-wide uppercase ${roleBadgeClasses}`}
-            >
-              {role}
-            </span>
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-[calc(1.25rem*var(--fit))] leading-[1.15] font-semibold tracking-tight lg:text-[calc(1.875rem*var(--fit))]">
-                {project.title}
-              </h3>
+            <div className="flex items-center justify-between gap-3">
+              <Tag
+                tone="brass"
+                size="custom"
+                className="px-[calc(0.75rem*var(--fit))] py-[calc(0.25rem*var(--fit))] text-[calc(0.6875rem*var(--fit))]"
+              >
+                {role}
+              </Tag>
               {project.timeline && (
-                <span
-                  className={`shrink-0 text-[calc(0.7rem*var(--fit))] font-medium uppercase tracking-[0.2em] ${muted}`}
+                <MetaLabel
+                  size="custom"
+                  className="shrink-0 text-[calc(0.7rem*var(--fit))] tracking-[0.2em] tabular-nums"
                 >
                   {project.timeline}
-                </span>
+                </MetaLabel>
               )}
             </div>
 
+            <h3 className="mt-[calc(0.75rem*var(--fit))] font-display text-[calc(1.25rem*var(--fit))] leading-[1.15] font-bold tracking-tight text-ink lg:text-[calc(1.875rem*var(--fit))]">
+              {project.title}
+            </h3>
+
             <p
-              className={`mt-[calc(0.75rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.6] lg:text-[calc(1rem*var(--fit))] ${muted}`}
+              className={`mt-[calc(0.65rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.6] lg:text-[calc(1rem*var(--fit))] ${muted}`}
             >
               {project.description}
             </p>
 
-            <div className="mt-[calc(1.1rem*var(--fit))]">
-              <p
-                className={`mb-2 text-[calc(0.625rem*var(--fit))] font-medium uppercase tracking-[0.22em] ${muted}`}
+            <div className="mt-[calc(1rem*var(--fit))] h-px w-full bg-border" />
+
+            <div className="mt-[calc(1rem*var(--fit))]">
+              <MetaLabel
+                as="p"
+                size="custom"
+                className="text-[calc(0.625rem*var(--fit))] tracking-[0.22em]"
               >
                 Key features
-              </p>
+              </MetaLabel>
               <ul
-                className={`grid grid-cols-1 gap-x-6 gap-y-[calc(0.4rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.5] lg:grid-cols-2 ${muted}`}
+                className={`mt-[calc(0.5rem*var(--fit))] grid grid-cols-1 gap-x-6 gap-y-[calc(0.4rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.5] lg:grid-cols-2 ${muted}`}
               >
                 {project.keyFeatures.map((feature) => (
-                  <li key={feature} className="flex gap-2">
-                    <span className="mt-[0.5em] h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-500" />
+                  <li key={feature} className="flex gap-2.5">
+                    <span className="mt-[0.5em] h-1.5 w-1.5 shrink-0 rounded-full bg-brass" />
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="mt-[calc(1.1rem*var(--fit))]">
-              <p
-                className={`mb-2 text-[calc(0.625rem*var(--fit))] font-medium uppercase tracking-[0.22em] ${muted}`}
+            <div className="mt-[calc(1rem*var(--fit))]">
+              <MetaLabel
+                as="p"
+                size="custom"
+                className="text-[calc(0.625rem*var(--fit))] tracking-[0.22em]"
               >
                 Stack
-              </p>
-              <div className="flex flex-wrap gap-[calc(0.4rem*var(--fit))]">
+              </MetaLabel>
+              <div className="mt-[calc(0.5rem*var(--fit))] flex flex-wrap gap-[calc(0.4rem*var(--fit))]">
                 {project.technologies.map((tech) => (
-                  <span
+                  <Tag
                     key={tech}
-                    className={`rounded-md px-[calc(0.6rem*var(--fit))] py-[calc(0.3rem*var(--fit))] text-[calc(0.75rem*var(--fit))] font-medium ${subtle}`}
+                    variant="stack"
+                    size="custom"
+                    className="px-[calc(0.6rem*var(--fit))] py-[calc(0.3rem*var(--fit))] text-[calc(0.75rem*var(--fit))]"
                   >
                     {tech}
-                  </span>
+                  </Tag>
                 ))}
               </div>
             </div>
@@ -799,34 +802,26 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
   );
 }
 
-const Projects = ({ darkMode }: ProjectsProps) => {
+const Projects = ({ darkMode: _darkMode }: ProjectsProps) => {
   const isCoverflow = useMediaQuery("(min-width: 640px)");
 
   const theme: ThemeClasses = {
-    darkMode,
-    cardClasses: darkMode
-      ? "border-slate-700 bg-slate-900 text-slate-100"
-      : "border-slate-200 bg-white text-slate-900",
-    muted: darkMode ? "text-slate-300" : "text-slate-600",
-    subtle: darkMode
-      ? "border border-slate-700 text-slate-300"
-      : "border border-slate-300 text-slate-700",
-    line: darkMode ? "border-slate-800" : "border-slate-200",
-    surfaceBg: darkMode ? "bg-slate-900" : "bg-white",
+    cardClasses: "border-border bg-surface text-ink",
+    muted: "text-ink-muted",
+    line: "border-border",
+    surfaceBg: "bg-surface",
   };
 
   return (
     <section className="flex flex-col px-6 pt-10 pb-6 sm:h-full sm:overflow-hidden sm:px-10 lg:px-8 lg:pt-14">
-      <div className="mx-auto w-full shrink-0">
-        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Projects
-        </h2>
-      </div>
+      <SectionHeading size="lg" className="mx-auto w-full shrink-0">
+        Projects
+      </SectionHeading>
 
       {isCoverflow ? (
         <CoverflowTrack theme={theme} />
       ) : (
-        <div className="mx-auto mt-8 flex w-full flex-col gap-6">
+        <div className="mx-auto mt-10 flex w-full flex-col gap-6">
           {projectitems.map((project) => (
             <MobileProjectCard
               key={project.slug}
@@ -838,12 +833,21 @@ const Projects = ({ darkMode }: ProjectsProps) => {
         </div>
       )}
 
-      <p
-        className={`mx-auto mt-3 flex w-full shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-wide ${theme.muted}`}
-      >
-        <span aria-hidden="true">&bull;</span>
+      <MetaLabel className="mx-auto mt-4 flex w-full shrink-0 items-center gap-2">
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-3 w-3"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
         Scroll to Continue
-      </p>
+      </MetaLabel>
     </section>
   );
 };

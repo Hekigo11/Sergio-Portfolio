@@ -3,6 +3,8 @@ import { type FormEvent, useState } from "react";
 import { useComments } from "../../hooks/useComments";
 import { formatRelativeTime } from "../../lib/formatRelativeTime";
 import { postComment, submitContact } from "../../lib/api";
+import MetaLabel from "../ui/MetaLabel";
+import SectionHeading from "../ui/SectionHeading";
 
 interface ConnectProps {
   darkMode: boolean;
@@ -21,7 +23,6 @@ const RESUME_URL = new URL(
 const EASING = [0.22, 1, 0.36, 1] as const;
 
 interface ThemeClasses {
-  darkMode: boolean;
   cardClasses: string;
   muted: string;
   line: string;
@@ -31,7 +32,9 @@ interface ThemeClasses {
   fieldClasses: string;
 }
 
-function ContactChip({
+// One line of the correspondence directory: label in the margin, value in the
+// column, ruled off from the next — a ledger row rather than a floating chip.
+function ContactRow({
   label,
   value,
   href,
@@ -44,22 +47,15 @@ function ContactChip({
   theme: ThemeClasses;
   disabled?: boolean;
 }) {
-  const { muted, line, surfaceBg, accentHover } = theme;
-  const labelEl = (
-    <span className={`text-[10px] font-medium uppercase tracking-[0.22em] ${muted}`}>
-      {label}
-    </span>
-  );
+  const { muted, accentHover } = theme;
+  const rowClasses =
+    "flex flex-col gap-1 border-b border-border py-3.5 sm:flex-row sm:items-baseline sm:gap-6";
 
   if (disabled || !href) {
     return (
-      <div
-        className={`flex flex-col rounded-xl border px-4 py-3 ${line} ${surfaceBg} opacity-60`}
-      >
-        {labelEl}
-        <span className={`mt-1 block truncate text-sm font-semibold ${muted}`}>
-          {value}
-        </span>
+      <div className={`${rowClasses} opacity-60`}>
+        <MetaLabel className="shrink-0 sm:w-20">{label}</MetaLabel>
+        <span className={`truncate text-sm font-semibold ${muted}`}>{value}</span>
       </div>
     );
   }
@@ -71,18 +67,32 @@ function ContactChip({
       href={href}
       target={opensNewTab ? "_blank" : undefined}
       rel={opensNewTab ? "noreferrer" : undefined}
-      className={`group flex flex-col rounded-xl border px-4 py-3 transition hover:-translate-y-0.5 ${line} ${surfaceBg}`}
+      className={`group ${rowClasses} transition`}
     >
-      {labelEl}
-      <span className={`mt-1 block truncate text-sm font-semibold transition ${accentHover}`}>
+      <MetaLabel className="shrink-0 sm:w-20">{label}</MetaLabel>
+      <span
+        className={`truncate text-sm font-semibold text-ink transition ${accentHover}`}
+      >
         {value}
       </span>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="hidden h-3.5 w-3.5 shrink-0 text-ink-faint transition group-hover:text-accent sm:ml-auto sm:block"
+      >
+        <path d="m9 18 6-6-6-6" />
+      </svg>
     </a>
   );
 }
 
 function ContactForm({ theme }: { theme: ThemeClasses }) {
-  const { muted, fieldClasses, errorText, darkMode } = theme;
+  const { muted, fieldClasses, errorText } = theme;
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
     "idle",
   );
@@ -111,16 +121,31 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
 
   if (status === "success") {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center">
-        <span className="text-3xl" aria-hidden="true">
-          ✓
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
+        <span
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 text-accent"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
         </span>
-        <p className="text-lg font-semibold">Message sent — thanks!</p>
+        <p className="font-display text-lg font-bold text-ink">
+          Message sent — thanks!
+        </p>
         <p className={`text-sm ${muted}`}>I'll get back to you soon.</p>
         <button
           type="button"
           onClick={() => setStatus("idle")}
-          className={`mt-2 text-xs font-medium uppercase tracking-wide underline-offset-4 hover:underline ${muted}`}
+          className={`mt-2 font-mono text-xs font-medium tracking-wide uppercase underline-offset-4 hover:underline ${muted}`}
         >
           Send another message
         </button>
@@ -140,23 +165,17 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
         aria-hidden="true"
       />
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-1.5">
-          <span className={`text-[10px] font-medium uppercase tracking-[0.22em] ${muted}`}>
-            Name
-          </span>
+        <label className="flex flex-col gap-2">
+          <MetaLabel>Name</MetaLabel>
           <input required name="name" maxLength={100} className={fieldClasses} />
         </label>
-        <label className="flex flex-col gap-1.5">
-          <span className={`text-[10px] font-medium uppercase tracking-[0.22em] ${muted}`}>
-            Email
-          </span>
+        <label className="flex flex-col gap-2">
+          <MetaLabel>Email</MetaLabel>
           <input required type="email" name="email" className={fieldClasses} />
         </label>
       </div>
-      <label className="flex flex-1 flex-col gap-1.5">
-        <span className={`text-[10px] font-medium uppercase tracking-[0.22em] ${muted}`}>
-          Message
-        </span>
+      <label className="flex flex-1 flex-col gap-2">
+        <MetaLabel>Message</MetaLabel>
         <textarea
           required
           name="message"
@@ -169,11 +188,7 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className={`min-h-11 self-start rounded-full px-6 py-2.5 text-sm font-semibold tracking-tight transition disabled:opacity-60 ${
-          darkMode
-            ? "bg-violet-500 text-slate-950 hover:bg-violet-400"
-            : "bg-violet-600 text-white hover:bg-violet-500"
-        }`}
+        className="min-h-11 self-start rounded-full bg-accent px-6 py-2.5 text-sm font-semibold tracking-tight text-accent-ink transition hover:bg-accent-hover disabled:opacity-60"
       >
         {status === "submitting" ? "Sending…" : "Send message"}
       </button>
@@ -188,7 +203,7 @@ function CommentComposer({
   theme: ThemeClasses;
   onPosted: (comment: { id: number; name: string; message: string; created_at: string }) => void;
 }) {
-  const { muted, fieldClasses, errorText, darkMode } = theme;
+  const { muted, fieldClasses, errorText } = theme;
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -241,11 +256,7 @@ function CommentComposer({
         <button
           type="submit"
           disabled={status === "submitting"}
-          className={`min-h-11 shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold tracking-tight transition disabled:opacity-60 ${
-            darkMode
-              ? "bg-violet-500 text-slate-950 hover:bg-violet-400"
-              : "bg-violet-600 text-white hover:bg-violet-500"
-          }`}
+          className="min-h-11 shrink-0 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold tracking-tight text-accent-ink transition hover:bg-accent-hover disabled:opacity-60"
         >
           {status === "submitting" ? "Posting…" : "Post"}
         </button>
@@ -269,7 +280,7 @@ function CommentsFeed({ theme }: { theme: ThemeClasses }) {
         {!loading && !error && comments.length === 0 && (
           <p className={`text-sm ${muted}`}>No notes yet — be the first to say hello.</p>
         )}
-        <ul className="flex flex-col gap-4">
+        <ul className="flex flex-col">
           <AnimatePresence initial={false}>
             {comments.map((comment) => (
               <motion.li
@@ -278,17 +289,17 @@ function CommentsFeed({ theme }: { theme: ThemeClasses }) {
                 initial={{ opacity: 0, y: -12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, ease: EASING }}
-                className={`border-b pb-4 last:border-b-0 last:pb-0 ${line}`}
+                className={`border-b py-4 first:pt-0 last:border-b-0 ${line}`}
               >
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-sm font-semibold tracking-tight">
+                  <span className="font-display text-base font-bold tracking-tight text-ink">
                     {comment.name}
                   </span>
-                  <span className={`shrink-0 text-xs tabular-nums ${muted}`}>
+                  <MetaLabel className="shrink-0 tabular-nums">
                     {formatRelativeTime(comment.created_at)}
-                  </span>
+                  </MetaLabel>
                 </div>
-                <p className={`mt-1.5 text-sm leading-6 ${muted}`}>{comment.message}</p>
+                <p className={`mt-2 text-sm leading-6 ${muted}`}>{comment.message}</p>
               </motion.li>
             ))}
           </AnimatePresence>
@@ -298,54 +309,76 @@ function CommentsFeed({ theme }: { theme: ThemeClasses }) {
   );
 }
 
-const Connect = ({ darkMode }: ConnectProps) => {
+const Connect = ({ darkMode: _darkMode }: ConnectProps) => {
   const theme: ThemeClasses = {
-    darkMode,
-    cardClasses: darkMode
-      ? "border-slate-700 bg-slate-900 text-slate-100"
-      : "border-slate-200 bg-white text-slate-900",
-    muted: darkMode ? "text-slate-300" : "text-slate-600",
-    line: darkMode ? "border-slate-800" : "border-slate-200",
-    surfaceBg: darkMode ? "bg-slate-900" : "bg-white",
-    accentHover: darkMode ? "group-hover:text-violet-300" : "group-hover:text-violet-600",
-    errorText: darkMode ? "text-rose-400" : "text-rose-600",
-    fieldClasses: `min-h-11 w-full rounded-lg border bg-transparent px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
-      darkMode
-        ? "border-slate-700 focus:border-violet-400 focus:ring-violet-400/25"
-        : "border-slate-300 focus:border-violet-500 focus:ring-violet-500/20"
-    }`,
+    cardClasses: "border-border bg-surface text-ink",
+    muted: "text-ink-muted",
+    line: "border-border",
+    surfaceBg: "bg-surface",
+    accentHover: "group-hover:text-accent",
+    errorText: "text-danger",
+    fieldClasses:
+      "min-h-11 w-full rounded-lg border border-border bg-transparent px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20",
   };
 
   return (
     <section className="flex flex-col px-6 pt-10 pb-10 lg:h-full lg:overflow-hidden lg:px-8 lg:pt-14 lg:pb-8">
-      <div className="mx-auto w-full max-w-6xl shrink-0">
-        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Connect</h2>
-        <p className={`mt-3 max-w-2xl text-base leading-7 ${theme.muted}`}>
-          Reach out directly, or leave a note below for anyone passing through.
-        </p>
-      </div>
+      <SectionHeading
+        size="lg"
+        className="mx-auto w-full max-w-6xl shrink-0"
+        description="Reach out directly, or leave a note below for anyone passing through."
+      >
+        Connect
+      </SectionHeading>
 
-      <div className="mx-auto mt-8 grid w-full max-w-6xl flex-1 gap-6 lg:min-h-0 lg:grid-cols-2">
+      <div className="mx-auto mt-10 grid w-full max-w-6xl flex-1 gap-6 lg:min-h-0 lg:grid-cols-2">
         <div
-          className={`flex flex-col rounded-2xl border p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] lg:min-h-0 lg:overflow-y-auto ${theme.cardClasses}`}
+          className={`flex flex-col rounded-xl border p-6 lg:min-h-0 lg:overflow-y-auto lg:p-8 ${theme.cardClasses}`}
         >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ContactChip label="Email" value={CONTACT_EMAIL} href={`mailto:${CONTACT_EMAIL}`} theme={theme} />
-            <ContactChip label="LinkedIn" value="jasper-sergio" href={LINKEDIN_URL} theme={theme} />
-            <ContactChip label="GitHub" value="Hekigo11" href={GITHUB_URL} theme={theme} />
-            <ContactChip label="Phone" value={PHONE_DISPLAY} href={PHONE_HREF} theme={theme} />
-            <ContactChip label="Résumé" value="View / Download" href={RESUME_URL} theme={theme} />
+          <div className="border-t border-border">
+            <ContactRow
+              label="Email"
+              value={CONTACT_EMAIL}
+              href={`mailto:${CONTACT_EMAIL}`}
+              theme={theme}
+            />
+            <ContactRow
+              label="LinkedIn"
+              value="jasper-sergio"
+              href={LINKEDIN_URL}
+              theme={theme}
+            />
+            <ContactRow
+              label="GitHub"
+              value="Hekigo11"
+              href={GITHUB_URL}
+              theme={theme}
+            />
+            <ContactRow
+              label="Phone"
+              value={PHONE_DISPLAY}
+              href={PHONE_HREF}
+              theme={theme}
+            />
+            <ContactRow
+              label="Résumé"
+              value="View / Download"
+              href={RESUME_URL}
+              theme={theme}
+            />
           </div>
-          <div className={`mt-6 flex-1 border-t pt-6 ${theme.line}`}>
+          <div className="mt-8 flex flex-1 flex-col">
             <ContactForm theme={theme} />
           </div>
         </div>
 
         <div
-          className={`flex flex-col rounded-2xl border p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] lg:min-h-0 ${theme.cardClasses}`}
+          className={`flex flex-col rounded-xl border p-6 lg:min-h-0 lg:p-8 ${theme.cardClasses}`}
         >
-          <h3 className="text-lg font-semibold tracking-tight">Notes from visitors</h3>
-          <p className={`mt-1 text-sm ${theme.muted}`}>
+          <h3 className="font-display text-xl font-bold tracking-tight text-ink">
+            Notes from visitors
+          </h3>
+          <p className={`mt-2 text-sm leading-6 ${theme.muted}`}>
             The five most recent also show up on the homepage.
           </p>
           <CommentsFeed theme={theme} />

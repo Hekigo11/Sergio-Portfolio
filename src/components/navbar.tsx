@@ -35,6 +35,40 @@ function MenuGlyph({ open }: { open: boolean }) {
   );
 }
 
+function SunIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      className="h-3.5 w-3.5"
+    >
+      <circle cx="12" cy="12" r="4.25" />
+      <path d="M12 2.5v2.25M12 19.25v2.25M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.5 12h2.25M19.25 12h2.25M4.4 19.6l1.6-1.6M18 6l1.6-1.6" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3.5 w-3.5"
+    >
+      <path d="M20 14.2A8.25 8.25 0 0 1 9.8 4a8.25 8.25 0 1 0 10.2 10.2Z" />
+    </svg>
+  );
+}
+
 function ThemeToggle({
   darkMode,
   onToggleDarkMode,
@@ -48,26 +82,16 @@ function ThemeToggle({
       onClick={onToggleDarkMode}
       aria-label="Toggle dark mode"
       aria-pressed={darkMode}
-      className={
-        darkMode
-          ? "flex h-8 w-14 items-center justify-end rounded-full border border-slate-600 bg-slate-800 p-1 shadow-sm hover:border-violet-500"
-          : "flex h-8 w-14 items-center justify-start rounded-full border border-slate-200 bg-slate-100 p-1 shadow-sm hover:border-violet-400"
-      }
+      className={`flex h-8 w-14 items-center rounded-full border border-border bg-surface p-1 transition hover:border-border-strong ${
+        darkMode ? "justify-end" : "justify-start"
+      }`}
     >
       <motion.span
         layout
-        transition={{
-          type: "spring",
-          visualDuration: 0.2,
-          bounce: 0.2,
-        }}
-        className={
-          darkMode
-            ? "flex h-6 w-6 items-center justify-center rounded-full bg-violet-300 text-sm leading-none text-slate-950"
-            : "flex h-6 w-6 items-center justify-center rounded-full bg-violet-600 text-sm leading-none text-white"
-        }
+        transition={{ type: "spring", visualDuration: 0.2, bounce: 0.2 }}
+        className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-accent-ink"
       >
-        <span aria-hidden="true">{darkMode ? "☾" : "☀"}</span>
+        {darkMode ? <MoonIcon /> : <SunIcon />}
       </motion.span>
       <span className="sr-only">
         {darkMode ? "Switch to light mode" : "Switch to dark mode"}
@@ -108,13 +132,7 @@ export function StickyNavbar({
 
   return (
     <>
-      <header
-        className={
-          darkMode
-            ? "sticky top-0 z-50 border-b border-slate-700 bg-slate-950/80 backdrop-blur-md"
-            : "sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-md"
-        }
-      >
+      <header className="sticky top-0 z-50 border-b border-border bg-bg/95 dark:bg-bg/75 dark:backdrop-blur-md">
         <nav
           className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
           aria-label="Main navigation"
@@ -125,23 +143,13 @@ export function StickyNavbar({
               event.preventDefault();
               handleNavigate("home");
             }}
-            className={
-              darkMode
-                ? "text-base font-semibold tracking-tight text-white"
-                : "text-base font-semibold tracking-tight text-slate-900"
-            }
+            className="font-display text-lg font-bold tracking-tight text-ink"
           >
             Sergio&apos;s Portfolio
           </a>
 
           <div className="flex items-center gap-3 sm:gap-6">
-            <div
-              className={
-                darkMode
-                  ? "hidden items-center gap-5 text-sm font-medium text-slate-300 md:flex"
-                  : "hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex"
-              }
-            >
+            <div className="hidden items-center gap-6 text-sm font-medium text-ink-muted md:flex">
               {navItems.map((item) => {
                 const active = item.id === activeSection;
                 return (
@@ -152,17 +160,20 @@ export function StickyNavbar({
                       event.preventDefault();
                       handleNavigate(item.id);
                     }}
-                    className={
-                      darkMode
-                        ? active
-                          ? "font-semibold text-violet-300"
-                          : "hover:text-violet-300"
-                        : active
-                          ? "font-semibold text-violet-600"
-                          : "hover:text-violet-600"
-                    }
+                    className={`relative py-1.5 transition-colors ${
+                      active
+                        ? "font-semibold text-accent"
+                        : "hover:text-ink"
+                    }`}
                   >
                     {item.label}
+                    {active && (
+                      <motion.span
+                        layoutId="nav-active-underline"
+                        className="absolute inset-x-0 -bottom-px h-px bg-accent"
+                        transition={{ duration: 0.35, ease: EASING }}
+                      />
+                    )}
                   </a>
                 );
               })}
@@ -178,11 +189,7 @@ export function StickyNavbar({
               aria-label="Toggle navigation menu"
               aria-expanded={menuOpen}
               aria-controls="mobile-nav-panel"
-              className={
-                darkMode
-                  ? "flex h-11 w-11 items-center justify-center rounded-full text-slate-100 md:hidden"
-                  : "flex h-11 w-11 items-center justify-center rounded-full text-slate-900 md:hidden"
-              }
+              className="flex h-11 w-11 items-center justify-center rounded-full text-ink md:hidden"
             >
               <MenuGlyph open={menuOpen} />
             </button>
@@ -202,21 +209,14 @@ export function StickyNavbar({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25, ease: EASING }}
-            className={
-              darkMode
-                ? "fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col bg-slate-950/95 backdrop-blur-md md:hidden"
-                : "fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col bg-white/95 backdrop-blur-md md:hidden"
-            }
+            className="fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col bg-bg/98 dark:bg-bg/85 dark:backdrop-blur-md md:hidden"
           >
             <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-between px-6 py-8 sm:px-10">
               <ul className="flex flex-col">
                 {navItems.map((item) => {
                   const active = item.id === activeSection;
                   return (
-                    <li
-                      key={item.id}
-                      className={`border-b ${darkMode ? "border-slate-800" : "border-slate-200"}`}
-                    >
+                    <li key={item.id} className="border-b border-border">
                       <a
                         href={`#${item.id}`}
                         onClick={(event) => {
@@ -224,15 +224,9 @@ export function StickyNavbar({
                           handleNavigate(item.id);
                         }}
                         aria-current={active ? "page" : undefined}
-                        className={
-                          active
-                            ? `flex items-center py-5 text-3xl font-bold tracking-tight ${
-                                darkMode ? "text-violet-300" : "text-violet-600"
-                              }`
-                            : `flex items-center py-5 text-3xl font-bold tracking-tight ${
-                                darkMode ? "text-slate-100" : "text-slate-900"
-                              }`
-                        }
+                        className={`flex items-center py-5 font-display text-3xl font-bold tracking-tight ${
+                          active ? "text-accent" : "text-ink"
+                        }`}
                       >
                         {item.label}
                       </a>
@@ -242,9 +236,7 @@ export function StickyNavbar({
               </ul>
 
               <div className="flex items-center justify-between pt-8">
-                <span
-                  className={`text-sm font-medium ${darkMode ? "text-slate-400" : "text-slate-600"}`}
-                >
+                <span className="text-sm font-medium text-ink-muted">
                   {darkMode ? "Dark mode" : "Light mode"}
                 </span>
                 <ThemeToggle darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
