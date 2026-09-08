@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import Section from "./Section";
 import About from "./sections/About";
+import Connect from "./sections/Connect";
 import Home from "./sections/Home";
 import Projects from "./sections/Projects";
 
@@ -54,6 +55,8 @@ export function SpatialCanvas({
               <About darkMode={darkMode} />
             ) : id === "projects" ? (
               <Projects darkMode={darkMode} />
+            ) : id === "connect" ? (
+              <Connect darkMode={darkMode} />
             ) : undefined}
           </Section>
         ))}

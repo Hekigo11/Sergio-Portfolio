@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@material-tailwind/react": "^2.1.10",
+    "@neondatabase/serverless": "^1.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "motion": "^13.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "resend": "^4.0.1",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
@@ -24,6 +26,7 @@
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@vercel/node": "^3.2.24",
     "@vitejs/plugin-react": "^6.1.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "oxlint": "^1.79.0",

@@ -12,7 +12,6 @@ import {
   useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent,
 } from "react";
 
 interface ProjectsProps {
@@ -158,7 +157,7 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
           >
             <span aria-hidden="true">›</span>
           </button>
-          <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1.5 bg-linear-to-t from-black/50 to-transparent px-3 pt-6 pb-2">
+          <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1.5 px-3 pb-2">
             {images.map((image, i) => (
               <button
                 key={image}
@@ -169,7 +168,7 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
                 }}
                 aria-label={`Go to image ${i + 1}`}
                 aria-current={i === index}
-                className={`h-1.5 w-1.5 rounded-full transition ${
+                className={`h-1.5 w-1.5 rounded-full shadow-[0_0_3px_rgba(0,0,0,0.7)] transition ${
                   i === index ? "bg-white" : "bg-white/50 hover:bg-white/75"
                 }`}
               />
@@ -184,11 +183,14 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
 interface ProjectItem {
   slug: string;
   title: string;
+  role?: string;
   timeline: string;
   description: string;
   keyFeatures: string[];
   technologies: string[];
 }
+
+const DEFAULT_ROLE = "Full-Stack Developer";
 
 const projectitems: ProjectItem[] = [
   {
@@ -197,17 +199,16 @@ const projectitems: ProjectItem[] = [
       "NavView: Computer Vision and LiDAR-Based System for Autonomous River Boats",
     timeline: "May 2026",
     description:
-      "NavView is an autonomous river-cleaning perception system integrating Computer Vision, LiDAR, SLAM, and ROS2 for real-time floating debris detection and obstacle awareness. The system uses a lightweight YOLO-based model trained on a custom San Juan River dataset and integrates a Mini PC, LiDAR, camera, Arduino Mega, and propulsion system into a low-cost autonomous vessel prototype.",
+      "An autonomous river-cleaning system integrating Computer Vision, LiDAR, SLAM, and ROS 2 for real-time debris detection and obstacle-aware navigation. Built with a lightweight YOLO model and custom river dataset, integrated with onboard computing and propulsion hardware.",
+
     keyFeatures: [
-      "Real-time floating debris detection & tracking",
-      "LiDAR-based 360° obstacle detection",
-      "Autonomous navigation & obstacle avoidance",
+      "Real-time debris detection & tracking",
+      "LiDAR obstacle detection & avoidance",
       "SLAM-based localization & mapping",
       "Temporal stability scoring for glare reduction",
-      "ROS 2 perception-to-navigation integration",
-      "Manual, autonomous, and emergency-stop control",
-      "Live camera & LiDAR monitoring interface",
+      "ROS 2 autonomous navigation",
     ],
+
     technologies: [
       "Python",
       "C/C++",
@@ -219,22 +220,73 @@ const projectitems: ProjectItem[] = [
       "Arduino",
     ],
   },
+
   {
     slug: "marj",
     title: "MARJ Food Services E-Commerce Website",
-    timeline: "March 2026",
+    timeline: "2025",
     description:
-      "A full-stack e-commerce website developed for MARJ Food Services, providing customers with an online storefront for browsing products, managing carts, and placing orders. The system includes product and order management features backed by a relational database to support the business's online operations.",
+      "A full-stack e-commerce website for MARJ Food Services, featuring an online storefront, shopping cart, order processing, and database-backed management.",
+
     keyFeatures: [
       "Online product storefront",
-      "Product browsing and management",
-      "Shopping cart functionality",
-      "Order placement and processing",
+      "Shopping cart & checkout",
+      "Order management",
       "Customer account management",
-      "Database-backed product and order records",
       "Responsive web interface",
     ],
+
     technologies: ["PHP", "MySQL", "HTML", "CSS", "JavaScript", "Bootstrap"],
+  },
+
+  {
+    slug: "lost-and-found",
+    title: "Lost and Found System for Adamson University",
+    timeline: "2025",
+    role: "Front-End Designer",
+    description:
+      "A mobile-first web application designed to simplify the reporting, tracking, and claiming of lost property through a centralized platform. The system provides public item browsing and search alongside administrative tools for managing records and claim requests.",
+
+    keyFeatures: [
+      "Search and filter lost & found items",
+      "Lost item reporting and claim requests",
+      "Admin dashboard and item management",
+      "Claim review and history tracking",
+      "Responsive mobile-first interface",
+    ],
+
+    technologies: [
+      "JavaScript",
+      "HTML",
+      "CSS",
+      "React.js",
+      "Firebase",
+      "Tailwind CSS",
+      "Google Chrome DevTools",
+    ],
+  },
+  {
+    slug: "volcano-monitoring",
+    title: "Mobile IoT Volcano Monitoring System",
+    timeline: "2024",
+
+    description:
+      "A mobile IoT monitoring system that provides real-time sensor data and alert levels through a React Native dashboard. The application connects to Firebase Realtime Database and provides monitoring and control features for remote volcanic activity observation.",
+
+    keyFeatures: [
+      "Real-time sensor data monitoring",
+      "Volcanic activity alert levels",
+      "Sensor status dashboard",
+      "Firebase Realtime Database integration",
+      "Remote system controls",
+    ],
+
+    technologies: [
+      "React Native",
+      "Expo",
+      "Firebase",
+      "Firebase Realtime Database",
+    ],
   },
 ];
 
@@ -247,7 +299,13 @@ interface ThemeClasses {
   darkMode: boolean;
 }
 
-function PlaceholderBox({ muted, darkMode }: { muted: string; darkMode: boolean }) {
+function PlaceholderBox({
+  muted,
+  darkMode,
+}: {
+  muted: string;
+  darkMode: boolean;
+}) {
   return (
     <div className="flex h-full items-center justify-center p-6 text-center">
       <div>
@@ -282,6 +340,10 @@ function MobileProjectCard({
 }) {
   const { cardClasses, muted, subtle, line, surfaceBg, darkMode } = theme;
   const hasImage = images.length > 0;
+  const role = project.role ?? DEFAULT_ROLE;
+  const roleBadgeClasses = darkMode
+    ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-300"
+    : "border-cyan-500/30 bg-cyan-50 text-cyan-700";
 
   return (
     <article
@@ -298,6 +360,11 @@ function MobileProjectCard({
       </div>
 
       <div className="mt-6 flex flex-col">
+        <span
+          className={`mb-3 inline-flex w-fit items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide uppercase ${roleBadgeClasses}`}
+        >
+          {role}
+        </span>
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-xl font-semibold tracking-tight">
             {project.title}
@@ -365,6 +432,7 @@ function CoverflowProjectCard({
   cardWidth,
   index,
   gap,
+  sidePadding,
   onSelect,
 }: {
   project: ProjectItem;
@@ -375,13 +443,18 @@ function CoverflowProjectCard({
   cardWidth: number;
   index: number;
   gap: number;
+  sidePadding: number;
   onSelect: () => void;
 }) {
   const { cardClasses, muted, subtle, line, surfaceBg, darkMode } = theme;
   const { containerRef, contentRef, scale: fitScale } = useFitScale();
   const hasImage = images.length > 0;
+  const role = project.role ?? DEFAULT_ROLE;
+  const roleBadgeClasses = darkMode
+    ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-300"
+    : "border-cyan-500/30 bg-cyan-50 text-cyan-700";
 
-  const cardCenter = index * (cardWidth + gap) + cardWidth / 2;
+  const cardCenter = sidePadding + index * (cardWidth + gap) + cardWidth / 2;
   const distance = useTransform(
     scrollX,
     (sx) => cardCenter - sx - containerWidth / 2,
@@ -398,98 +471,118 @@ function CoverflowProjectCard({
   );
 
   return (
-    <motion.article
-      onClick={onSelect}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-label={`View ${project.title}`}
-      style={{ width: cardWidth, scale, opacity }}
-      className={`flex h-full shrink-0 cursor-pointer flex-col overflow-hidden rounded-2xl border p-5 shadow-[0_20px_60px_rgba(15,23,42,0.12)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
-    >
-      <div
-        className={`h-56 w-full shrink-0 self-center overflow-hidden rounded-xl border sm:h-64 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
+    // The scale/opacity transform lives on an inner element, not this flex item
+    // itself. Scrollable-overflow (and therefore this track's scrollWidth) is
+    // spec'd to include descendants' *transformed* geometry — so if this outer
+    // box carried the transform, the last card scaling up toward center would
+    // keep growing scrollWidth, pushing the scroll-end further away the closer
+    // you got, making it impossible to ever scroll it fully into view.
+    // Keeping this box a fixed, untransformed width sidesteps that entirely.
+    //
+    <article style={{ width: cardWidth }} className="h-full shrink-0">
+      <motion.div
+        onClick={onSelect}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onSelect();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`View ${project.title}`}
+        style={{ scale, opacity }}
+        className={`flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl border p-5 shadow-[0_20px_60px_rgba(15,23,42,0.12)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
       >
-        {hasImage ? (
-          <ProjectImageCarousel images={images} alt={project.title} />
-        ) : (
-          <PlaceholderBox muted={muted} darkMode={darkMode} />
-        )}
-      </div>
+        <div
+          className={`h-56 w-full shrink-0 self-center overflow-hidden rounded-xl border sm:h-64 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
+        >
+          {hasImage ? (
+            <ProjectImageCarousel images={images} alt={project.title} />
+          ) : (
+            <PlaceholderBox muted={muted} darkMode={darkMode} />
+          )}
+        </div>
 
-      <div
-        ref={containerRef}
-        className="mt-6 min-h-0 flex-1 overflow-hidden lg:mt-0"
-      >
-        <div ref={contentRef} style={{ "--fit": fitScale } as CSSProperties}>
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="text-[calc(1.25rem*var(--fit))] leading-[1.15] font-semibold tracking-tight lg:text-[calc(1.875rem*var(--fit))]">
-              {project.title}
-            </h3>
-            {project.timeline && (
-              <span
-                className={`shrink-0 text-[calc(0.7rem*var(--fit))] font-medium uppercase tracking-[0.2em] ${muted}`}
-              >
-                {project.timeline}
-              </span>
-            )}
-          </div>
-
-          <p
-            className={`mt-[calc(0.75rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.6] lg:text-[calc(1rem*var(--fit))] ${muted}`}
-          >
-            {project.description}
-          </p>
-
-          <div className="mt-[calc(1.1rem*var(--fit))]">
-            <p
-              className={`mb-2 text-[calc(0.625rem*var(--fit))] font-medium uppercase tracking-[0.22em] ${muted}`}
+        <div
+          ref={containerRef}
+          className="mt-6 min-h-0 flex-1 overflow-hidden lg:mt-0"
+        >
+          <div ref={contentRef} style={{ "--fit": fitScale } as CSSProperties}>
+            <span
+              className={`mb-[calc(0.5rem*var(--fit))] inline-flex w-fit items-center rounded-full border px-[calc(0.75rem*var(--fit))] py-[calc(0.25rem*var(--fit))] text-[calc(0.6875rem*var(--fit))] font-semibold tracking-wide uppercase ${roleBadgeClasses}`}
             >
-              Key features
-            </p>
-            <ul
-              className={`grid grid-cols-1 gap-x-6 gap-y-[calc(0.4rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.5] lg:grid-cols-2 ${muted}`}
-            >
-              {project.keyFeatures.map((feature) => (
-                <li key={feature} className="flex gap-2">
-                  <span className="mt-[0.5em] h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-500" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mt-[calc(1.1rem*var(--fit))]">
-            <p
-              className={`mb-2 text-[calc(0.625rem*var(--fit))] font-medium uppercase tracking-[0.22em] ${muted}`}
-            >
-              Stack
-            </p>
-            <div className="flex flex-wrap gap-[calc(0.4rem*var(--fit))]">
-              {project.technologies.map((tech) => (
+              {role}
+            </span>
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-[calc(1.25rem*var(--fit))] leading-[1.15] font-semibold tracking-tight lg:text-[calc(1.875rem*var(--fit))]">
+                {project.title}
+              </h3>
+              {project.timeline && (
                 <span
-                  key={tech}
-                  className={`rounded-md px-[calc(0.6rem*var(--fit))] py-[calc(0.3rem*var(--fit))] text-[calc(0.75rem*var(--fit))] font-medium ${subtle}`}
+                  className={`shrink-0 text-[calc(0.7rem*var(--fit))] font-medium uppercase tracking-[0.2em] ${muted}`}
                 >
-                  {tech}
+                  {project.timeline}
                 </span>
-              ))}
+              )}
+            </div>
+
+            <p
+              className={`mt-[calc(0.75rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.6] lg:text-[calc(1rem*var(--fit))] ${muted}`}
+            >
+              {project.description}
+            </p>
+
+            <div className="mt-[calc(1.1rem*var(--fit))]">
+              <p
+                className={`mb-2 text-[calc(0.625rem*var(--fit))] font-medium uppercase tracking-[0.22em] ${muted}`}
+              >
+                Key features
+              </p>
+              <ul
+                className={`grid grid-cols-1 gap-x-6 gap-y-[calc(0.4rem*var(--fit))] text-[calc(0.875rem*var(--fit))] leading-[1.5] lg:grid-cols-2 ${muted}`}
+              >
+                {project.keyFeatures.map((feature) => (
+                  <li key={feature} className="flex gap-2">
+                    <span className="mt-[0.5em] h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-500" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-[calc(1.1rem*var(--fit))]">
+              <p
+                className={`mb-2 text-[calc(0.625rem*var(--fit))] font-medium uppercase tracking-[0.22em] ${muted}`}
+              >
+                Stack
+              </p>
+              <div className="flex flex-wrap gap-[calc(0.4rem*var(--fit))]">
+                {project.technologies.map((tech) => (
+                  <span
+                    key={tech}
+                    className={`rounded-md px-[calc(0.6rem*var(--fit))] py-[calc(0.3rem*var(--fit))] text-[calc(0.75rem*var(--fit))] font-medium ${subtle}`}
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </motion.article>
+      </motion.div>
+    </article>
   );
 }
 
 const CARD_WIDTH_RATIO = 0.88;
 const CARD_WIDTH_MAX = 1280;
 const CARD_GAP = 32;
+// Lower = longer, slippier glide toward the target scroll position ("ice" feel).
+const SCROLL_EASE = 0.09;
+// Multiplier turning drag-release velocity (px/ms) into an extra fling distance (px).
+const FLING_STRENGTH = 220;
+const FLING_MIN_VELOCITY = 0.05;
 
 function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -500,8 +593,13 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
     startX: number;
     startScrollLeft: number;
     moved: boolean;
+    lastX: number;
+    lastT: number;
+    velocity: number;
   } | null>(null);
   const suppressClickRef = useRef(false);
+  const wheelTargetRef = useRef<number | null>(null);
+  const wheelRafRef = useRef(0);
 
   useLayoutEffect(() => {
     const el = trackRef.current;
@@ -521,30 +619,72 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
   const scrollToIndex = (index: number) => {
     const el = trackRef.current;
     if (!el || !cardWidth) return;
-    const center = index * (cardWidth + CARD_GAP) + cardWidth / 2;
+    const center = sidePadding + index * (cardWidth + CARD_GAP) + cardWidth / 2;
     el.scrollTo({ left: center - containerWidth / 2, behavior: "smooth" });
   };
 
-  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
+  const stepWheelEase = () => {
+    const el = trackRef.current;
+    if (!el || wheelTargetRef.current === null) return;
+    const target = wheelTargetRef.current;
+    const diff = target - el.scrollLeft;
+    if (Math.abs(diff) < 0.5) {
+      el.scrollLeft = target;
+      wheelTargetRef.current = null;
+      return;
+    }
+    el.scrollLeft += diff * SCROLL_EASE;
+    wheelRafRef.current = requestAnimationFrame(stepWheelEase);
+  };
+
+  // React attaches onWheel as a passive listener by default, so preventDefault()
+  // inside it silently no-ops (and warns). Attach natively with passive: false
+  // so redirecting a vertical wheel into horizontal scroll actually works.
+  useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    const delta =
-      Math.abs(event.deltaX) > Math.abs(event.deltaY)
-        ? event.deltaX
-        : event.deltaY;
-    if (delta === 0) return;
-    event.preventDefault();
-    el.scrollLeft += delta;
-  };
+
+    const handleWheel = (event: globalThis.WheelEvent) => {
+      // A real horizontal gesture (trackpad swipe) already scrolls this native
+      // overflow-x container on its own, with the browser's own momentum curve —
+      // leave it alone. Only step in for a plain vertical wheel, which has
+      // nothing else to scroll here: ease it toward an accumulating target
+      // instead of jumping scrollLeft directly, so ticks glide instead of step.
+      if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      if (event.deltaY === 0) return;
+      event.preventDefault();
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      const base = wheelTargetRef.current ?? el.scrollLeft;
+      wheelTargetRef.current = Math.max(
+        0,
+        Math.min(maxScroll, base + event.deltaY),
+      );
+      cancelAnimationFrame(wheelRafRef.current);
+      wheelRafRef.current = requestAnimationFrame(stepWheelEase);
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+      cancelAnimationFrame(wheelRafRef.current);
+    };
+  }, []);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== "mouse") return;
+    if ((event.target as HTMLElement).closest("button")) return;
     const el = trackRef.current;
     if (!el) return;
+    cancelAnimationFrame(wheelRafRef.current);
+    wheelTargetRef.current = null;
+    const now = performance.now();
     dragState.current = {
       startX: event.clientX,
       startScrollLeft: el.scrollLeft,
       moved: false,
+      lastX: event.clientX,
+      lastT: now,
+      velocity: 0,
     };
     el.setPointerCapture(event.pointerId);
   };
@@ -556,14 +696,39 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
     const delta = event.clientX - state.startX;
     if (Math.abs(delta) > 4) state.moved = true;
     el.scrollLeft = state.startScrollLeft - delta;
+
+    const now = performance.now();
+    const dt = now - state.lastT;
+    if (dt > 0) {
+      // Blend rather than overwrite so a single jittery sample near release
+      // doesn't dominate the fling — feels like a continuous glide, not a snap.
+      const instantVelocity = (event.clientX - state.lastX) / dt;
+      state.velocity = state.velocity * 0.7 + instantVelocity * 0.3;
+      state.lastX = event.clientX;
+      state.lastT = now;
+    }
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
     const el = trackRef.current;
-    if (dragState.current?.moved) suppressClickRef.current = true;
+    const state = dragState.current;
+    if (state?.moved) suppressClickRef.current = true;
     if (el?.hasPointerCapture(event.pointerId)) {
       el.releasePointerCapture(event.pointerId);
     }
+
+    // Fling: let a fast drag release keep gliding in the same direction, like
+    // letting go of something sliding across ice, instead of stopping dead.
+    if (el && state?.moved && Math.abs(state.velocity) > FLING_MIN_VELOCITY) {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      wheelTargetRef.current = Math.max(
+        0,
+        Math.min(maxScroll, el.scrollLeft - state.velocity * FLING_STRENGTH),
+      );
+      cancelAnimationFrame(wheelRafRef.current);
+      wheelRafRef.current = requestAnimationFrame(stepWheelEase);
+    }
+
     dragState.current = null;
   };
 
@@ -578,7 +743,6 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
   return (
     <div
       ref={trackRef}
-      onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -586,14 +750,13 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
       role="region"
       aria-roledescription="carousel"
       aria-label="Projects"
-      className="mx-auto mt-8 min-h-0 w-full max-w-[100rem] flex-1 cursor-grab overflow-x-auto overflow-y-hidden scrollbar-none active:cursor-grabbing"
+      className="mx-auto mt-8 min-h-0 w-full flex-1 cursor-grab overflow-x-auto overflow-y-hidden scrollbar-none active:cursor-grabbing"
     >
       <div
         className="flex h-full items-stretch"
         style={{
           gap: CARD_GAP,
           paddingLeft: sidePadding,
-          paddingRight: sidePadding,
         }}
       >
         {cardWidth > 0 &&
@@ -608,9 +771,25 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
               cardWidth={cardWidth}
               index={i}
               gap={CARD_GAP}
+              sidePadding={sidePadding}
               onSelect={() => handleCardSelect(i)}
             />
           ))}
+        {cardWidth > 0 && (
+          // A real trailing box, not padding/margin: Chrome drops a scroll
+          // container's *trailing* padding (and a last child's trailing
+          // margin) from scrollWidth, so either one left the native
+          // scroll-end short of sidePadding — the last card's right edge
+          // landed flush against the viewport edge instead of centered. An
+          // actual flex item's own width is a "real" box and isn't dropped.
+          // It already sits one `gap` past the last card, so subtract that
+          // out to land on exactly `sidePadding` of total trailing space.
+          <div
+            aria-hidden="true"
+            style={{ width: Math.max(0, sidePadding - CARD_GAP) }}
+            className="h-full shrink-0"
+          />
+        )}
       </div>
     </div>
   );
@@ -634,7 +813,7 @@ const Projects = ({ darkMode }: ProjectsProps) => {
 
   return (
     <section className="flex flex-col px-6 pt-10 pb-6 sm:h-full sm:overflow-hidden sm:px-10 lg:px-8 lg:pt-14">
-      <div className="mx-auto w-full max-w-[100rem] shrink-0">
+      <div className="mx-auto w-full shrink-0">
         <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
           Projects
         </h2>
@@ -643,7 +822,7 @@ const Projects = ({ darkMode }: ProjectsProps) => {
       {isCoverflow ? (
         <CoverflowTrack theme={theme} />
       ) : (
-        <div className="mx-auto mt-8 flex w-full max-w-[100rem] flex-col gap-6">
+        <div className="mx-auto mt-8 flex w-full flex-col gap-6">
           {projectitems.map((project) => (
             <MobileProjectCard
               key={project.slug}
@@ -656,7 +835,7 @@ const Projects = ({ darkMode }: ProjectsProps) => {
       )}
 
       <p
-        className={`mx-auto mt-3 flex w-full max-w-[100rem] shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-wide ${theme.muted}`}
+        className={`mx-auto mt-3 flex w-full shrink-0 items-center gap-2 text-xs font-medium uppercase tracking-wide ${theme.muted}`}
       >
         <span aria-hidden="true">&bull;</span>
         Scroll to Continue
