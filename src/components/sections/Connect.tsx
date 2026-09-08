@@ -169,7 +169,7 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className={`self-start rounded-full px-6 py-2.5 text-sm font-semibold tracking-tight transition disabled:opacity-60 ${
+        className={`min-h-11 self-start rounded-full px-6 py-2.5 text-sm font-semibold tracking-tight transition disabled:opacity-60 ${
           darkMode
             ? "bg-violet-500 text-slate-950 hover:bg-violet-400"
             : "bg-violet-600 text-white hover:bg-violet-500"
@@ -241,7 +241,7 @@ function CommentComposer({
         <button
           type="submit"
           disabled={status === "submitting"}
-          className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold tracking-tight transition disabled:opacity-60 ${
+          className={`min-h-11 shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold tracking-tight transition disabled:opacity-60 ${
             darkMode
               ? "bg-violet-500 text-slate-950 hover:bg-violet-400"
               : "bg-violet-600 text-white hover:bg-violet-500"
@@ -309,7 +309,7 @@ const Connect = ({ darkMode }: ConnectProps) => {
     surfaceBg: darkMode ? "bg-slate-900" : "bg-white",
     accentHover: darkMode ? "group-hover:text-violet-300" : "group-hover:text-violet-600",
     errorText: darkMode ? "text-rose-400" : "text-rose-600",
-    fieldClasses: `w-full rounded-lg border bg-transparent px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
+    fieldClasses: `min-h-11 w-full rounded-lg border bg-transparent px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
       darkMode
         ? "border-slate-700 focus:border-violet-400 focus:ring-violet-400/25"
         : "border-slate-300 focus:border-violet-500 focus:ring-violet-500/20"

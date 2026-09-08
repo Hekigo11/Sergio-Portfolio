@@ -142,7 +142,7 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
               goTo(index - 1);
             }}
             aria-label="Previous image"
-            className="absolute top-1/2 left-2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65"
+            className="absolute top-1/2 left-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65 sm:h-7 sm:w-7"
           >
             <span aria-hidden="true">‹</span>
           </button>
@@ -153,7 +153,7 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
               goTo(index + 1);
             }}
             aria-label="Next image"
-            className="absolute top-1/2 right-2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65"
+            className="absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65 sm:h-7 sm:w-7"
           >
             <span aria-hidden="true">›</span>
           </button>
@@ -168,10 +168,14 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
                 }}
                 aria-label={`Go to image ${i + 1}`}
                 aria-current={i === index}
-                className={`h-1.5 w-1.5 rounded-full shadow-[0_0_3px_rgba(0,0,0,0.7)] transition ${
-                  i === index ? "bg-white" : "bg-white/50 hover:bg-white/75"
-                }`}
-              />
+                className="group p-2"
+              >
+                <span
+                  className={`block h-1.5 w-1.5 rounded-full shadow-[0_0_3px_rgba(0,0,0,0.7)] transition ${
+                    i === index ? "bg-white" : "bg-white/50 group-hover:bg-white/75"
+                  }`}
+                />
+              </button>
             ))}
           </div>
         </>
