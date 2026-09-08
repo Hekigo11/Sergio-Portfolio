@@ -32,7 +32,7 @@
   /* Dark — deep-galaxy: near-black navy ground, translucent glass panels,
      lifted periwinkle and muted brass accents. */
   --color-bg: #0a0d18;
-  --color-surface: #ffffff0c;
+  --color-surface: #ffffff14;
   --color-surface-solid: #10131f;
   --color-border: #ffffff1c;
   --color-border-strong: #ffffff2e;
@@ -135,4 +135,77 @@ a {
 
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* Restrained glass: every panel on `bg-surface` picks up a light blur in dark
+   mode, so the (future) galaxy background reads faintly through the surface
+   instead of sitting as a flat, opaque box. Light mode keeps its paper
+   treatment — bg-surface there is already opaque, so this is a no-op. A
+   browser without backdrop-filter support just keeps the flat tinted panel. */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  [data-theme="dark"] .bg-surface {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* Escape hatch: backdrop-filter forces the browser to resample and re-blur
+     everything behind an element on every frame its own transform changes or
+     its backdrop scrolls — combined with a continuously-updating transform
+     (Projects' coverflow cards animate scale/opacity off scroll position) or
+     a fast-scrolling track behind it, that recomposite cost tanks scroll FPS.
+     `.perf-flat` keeps the tinted glass color but drops the blur on surfaces
+     that live inside such a track; apply it there instead of removing
+     `bg-surface`. */
+  [data-theme="dark"] .bg-surface.perf-flat {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* NightSky's star twinkle: a cheap, GPU-composited opacity pulse — no JS,
+   no layout, no paint outside each star's own tiny box. Each star sets its
+   own --twinkle-delay/--twinkle-duration inline so 80-odd points never
+   pulse in lockstep. Gated to `no-preference` so a reduced-motion user gets
+   a fully static field at each star's resting brightness — the animation
+   only ever activates for visitors who haven't asked for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes star-twinkle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .star-twinkle {
+    animation: star-twinkle var(--twinkle-duration, 4s) ease-in-out infinite;
+    animation-delay: var(--twinkle-delay, 0s);
+  }
+
+  /* DayCurrents' air movement: a very slow, very small transform-only drift.
+     Transform is the one property that animates on the compositor without
+     repainting the stroke, which matters because these paths are viewport-
+     sized (see The No-Blur-On-A-Moving-Backdrop Rule for the cost of getting
+     this wrong). Each current sets its own duration/delay/distance, and the
+     negative delays start them mid-cycle so nothing sweeps in lockstep. */
+  @keyframes wind-drift {
+    0%,
+    100% {
+      transform: translate3d(
+        calc(var(--drift-x, 1.2%) * -1),
+        calc(var(--drift-y, 0.4%) * -1),
+        0
+      );
+    }
+    50% {
+      transform: translate3d(var(--drift-x, 1.2%), var(--drift-y, 0.4%), 0);
+    }
+  }
+
+  .wind-drift {
+    animation: wind-drift var(--drift-duration, 52s) ease-in-out infinite;
+    animation-delay: var(--drift-delay, 0s);
+  }
 }

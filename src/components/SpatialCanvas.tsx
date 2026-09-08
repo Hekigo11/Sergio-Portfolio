@@ -15,6 +15,8 @@ interface SpatialCanvasProps {
   sections: Record<string, SectionPosition & { label: string }>;
   darkMode: boolean;
   onToggleDarkMode: () => void;
+  /** Scrolling past a section's top/bottom edge navigates to a neighbor. */
+  onNavigate: (id: string) => void;
 }
 
 const TRANSITION_SECONDS = 0.7;
@@ -25,9 +27,11 @@ export function SpatialCanvas({
   sections,
   darkMode,
   onToggleDarkMode,
+  onNavigate,
 }: SpatialCanvasProps) {
   const activePosition = sections[activeSection];
   const shouldReduceMotion = useReducedMotion();
+  const sectionOrder = Object.keys(sections);
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full overflow-hidden">
@@ -48,6 +52,8 @@ export function SpatialCanvas({
             position={section}
             darkMode={darkMode}
             visible={id === activeSection}
+            sectionOrder={sectionOrder}
+            onNavigate={onNavigate}
           >
             {id === "home" ? (
               <Home darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />

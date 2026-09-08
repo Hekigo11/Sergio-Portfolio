@@ -1,8 +1,17 @@
 import { motion } from "motion/react";
+import { useRef } from "react";
 import WordCarousel from "../WordCarousel";
+import { useWheelSnapScroll } from "../../hooks/useWheelSnapScroll";
 import MetaLabel from "../ui/MetaLabel";
 import SectionHeading from "../ui/SectionHeading";
 import Tag from "../ui/Tag";
+import { DecorField, MaskedArt } from "../decor";
+import cloudTwo from "../../assets/cloud-2.svg";
+import cloudThree from "../../assets/cloud-3.svg";
+import lineartOne from "../../assets/lineart-1.svg";
+import lineartThree from "../../assets/lineart-3.svg";
+import starsOne from "../../assets/stars-1.svg";
+import starsThree from "../../assets/stars-3.svg";
 
 interface AboutProps {
   darkMode: boolean;
@@ -146,9 +155,27 @@ const experience = [
 ];
 
 const About = ({ darkMode }: AboutProps) => {
+  const skillsSectionRef = useRef<HTMLElement>(null);
+  const skillsScrollRef = useRef<HTMLDivElement>(null);
+  useWheelSnapScroll({ hitAreaRef: skillsSectionRef, scrollRef: skillsScrollRef });
+
   return (
-    <div className="bg-bg text-ink">
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-end px-6 py-14 sm:px-10 lg:px-8 lg:py-20">
+    <div className="text-ink">
+      <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-end px-6 py-14 sm:px-10 lg:px-8 lg:py-20">
+        <DecorField className="hidden sm:block">
+          <MaskedArt
+            src={cloudTwo}
+            className="absolute top-[14%] right-[7%] w-56 text-ink-faint opacity-45 aspect-744/214 lg:w-72"
+          />
+          <MaskedArt
+            src={lineartOne}
+            className="absolute top-[22%] left-[4%] w-32 text-ink-faint opacity-30 aspect-665/722 dark:hidden lg:w-40"
+          />
+          <MaskedArt
+            src={starsOne}
+            className="absolute top-[20%] left-[4%] hidden w-28 text-ink-faint opacity-40 aspect-685/750 lg:w-36 dark:block"
+          />
+        </DecorField>
         <div className="max-w-4xl pb-8">
           <h1 className="font-display text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
             Bringing visualizations to reality.
@@ -160,7 +187,21 @@ const About = ({ darkMode }: AboutProps) => {
         </div>
       </section>
 
-      <section className="min-h-[calc(100vh-4rem)] border-t border-border">
+      <section className="relative min-h-[calc(100vh-4rem)] border-t border-border">
+        <DecorField className="hidden sm:block">
+          <MaskedArt
+            src={cloudThree}
+            className="absolute top-[11%] right-[6%] w-52 text-ink-faint opacity-35 aspect-714/234 lg:w-64"
+          />
+          <MaskedArt
+            src={lineartThree}
+            className="absolute bottom-[9%] left-[7%] w-40 text-ink-faint opacity-40 aspect-714/478 dark:hidden lg:w-52"
+          />
+          <MaskedArt
+            src={starsThree}
+            className="absolute bottom-[8%] left-[8%] hidden w-24 text-ink-faint opacity-45 aspect-582/750 lg:w-32 dark:block"
+          />
+        </DecorField>
         <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center px-6 py-20 text-center sm:px-10 lg:px-8">
           <div className="max-w-5xl">
             <MetaLabel size="sm" as="p">
@@ -283,11 +324,14 @@ const About = ({ darkMode }: AboutProps) => {
         </div>
       </section>
 
-      <section className="border-t border-border">
+      <section ref={skillsSectionRef} className="border-t border-border">
         <div className="mx-auto flex w-full max-w-6xl flex-col justify-center px-6 pt-24 pb-20 sm:px-10 lg:px-8 lg:pt-28 lg:pb-24">
           <SectionHeading size="lg">Skills</SectionHeading>
           <div className="mt-12">
-            <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-6">
+            <div
+              ref={skillsScrollRef}
+              className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-6"
+            >
               {allSkillGroups.map((group) => (
                 <div
                   key={group.title}

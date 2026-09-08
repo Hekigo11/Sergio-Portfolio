@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { StickyNavbar } from "./components/navbar";
 import { SpatialCanvas } from "./components/SpatialCanvas";
+import { DayCurrents, NightSky } from "./components/decor";
 
 const sections = {
   home: { label: "Home", x: 0, y: 0 },
@@ -27,6 +28,8 @@ function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <DayCurrents />
+      <NightSky />
       <StickyNavbar
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode((prev) => !prev)}
@@ -38,6 +41,7 @@ function App() {
         sections={sections}
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode((prev) => !prev)}
+        onNavigate={navigateTo}
       />
     </div>
   );

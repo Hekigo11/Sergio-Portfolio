@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef, type ReactNode } from "react";
+import { useScrollChainNavigation } from "../hooks/useScrollChainNavigation";
 
 interface SectionProps {
   id: string;
@@ -8,6 +9,10 @@ interface SectionProps {
   visible: boolean;
   children?: ReactNode;
   className?: string;
+  /** Full section id order, for computing this section's neighbors. */
+  sectionOrder?: string[];
+  /** Scrolling past this section's top/bottom edge navigates to a neighbor. */
+  onNavigate?: (id: string) => void;
 }
 
 const filler = [
@@ -29,7 +34,17 @@ const filler = [
 ];
 
 export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
-  { id, label, position, darkMode: _darkMode, visible, children, className = "" },
+  {
+    id,
+    label,
+    position,
+    darkMode: _darkMode,
+    visible,
+    children,
+    className = "",
+    sectionOrder,
+    onNavigate,
+  },
   ref,
 ) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -39,6 +54,21 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
       scrollContainerRef.current?.scrollTo({ top: 0 });
     }
   }, [visible]);
+
+  useScrollChainNavigation({
+    containerRef: scrollContainerRef,
+    enabled: visible && Boolean(sectionOrder && onNavigate),
+    onNext: () => {
+      if (!sectionOrder || !onNavigate) return;
+      const next = sectionOrder[sectionOrder.indexOf(id) + 1];
+      if (next) onNavigate(next);
+    },
+    onPrev: () => {
+      if (!sectionOrder || !onNavigate) return;
+      const prev = sectionOrder[sectionOrder.indexOf(id) - 1];
+      if (prev) onNavigate(prev);
+    },
+  });
 
   return (
     <section
@@ -53,7 +83,7 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
     >
       <div
         ref={scrollContainerRef}
-        className="flex h-[calc(100vh-4rem)] w-screen flex-col overflow-y-auto overscroll-contain bg-bg text-ink"
+        className="flex h-[calc(100vh-4rem)] w-screen flex-col overflow-y-auto overscroll-contain text-ink"
       >
         {children ?? (
           <>

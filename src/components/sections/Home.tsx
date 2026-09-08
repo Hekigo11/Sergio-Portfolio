@@ -3,6 +3,11 @@ import portraitDark from "../../assets/Home/PortraitDark.png";
 import { useComments } from "../../hooks/useComments";
 import VisitorNotesCarousel from "../VisitorNotesCarousel";
 import MetaLabel from "../ui/MetaLabel";
+import { DecorField, MaskedArt } from "../decor";
+import lineHalo from "../../assets/line-halo.svg";
+import lineartFour from "../../assets/lineart-4.svg";
+import starsFour from "../../assets/stars-4.svg";
+import cloudTwo from "../../assets/cloud-2.svg";
 
 const portraitLight = new URL(
   "../../assets/Home/PortraitLight.JPG",
@@ -21,8 +26,26 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
 
   return (
     <div>
-      <div className="mx-auto grid min-h-full w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-16 lg:px-8">
-        <div className="flex max-w-2xl flex-col justify-center text-center lg:text-left">
+      <div className="relative mx-auto grid min-h-full w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-16 lg:px-8">
+        {/* Theme-paired flourish: the lineart curl is the day mark, the star
+            cluster the night one, sharing a slot so either theme shows the
+            same number of marks. */}
+        <DecorField className="hidden lg:block">
+          <MaskedArt
+            src={cloudTwo}
+            className="absolute top-[8%] left-[2%] w-52 text-ink-faint opacity-30 aspect-744/214"
+          />
+          <MaskedArt
+            src={lineartFour}
+            className="absolute bottom-[6%] left-0 w-36 text-ink-faint opacity-35 aspect-722/472 dark:hidden"
+          />
+          <MaskedArt
+            src={starsFour}
+            className="absolute bottom-[7%] left-[1%] hidden w-32 text-ink-faint opacity-45 aspect-579/492 dark:block"
+          />
+        </DecorField>
+
+        <div className="relative flex max-w-2xl flex-col justify-center text-center lg:text-left">
           <MetaLabel size="sm">- Greetings, I&apos;m</MetaLabel>
           <h1 className="mt-6 font-display text-5xl leading-[0.95] font-bold tracking-tight text-ink sm:text-6xl lg:text-7xl">
             Jasper D. Sergio
@@ -42,13 +65,23 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
         </div>
 
         <div className="flex flex-col items-center justify-center gap-6 lg:items-end lg:border-l lg:border-border lg:pl-16">
-          <div className="rounded-xl border border-border bg-surface-solid p-2">
-            <img
-              key={portraitSource}
-              src={portraitSource}
-              alt="Portrait of Jasper D. Sergio"
-              className="h-64 w-64 rounded-lg object-cover sm:h-72 sm:w-72"
-            />
+          {/* Stage is sized beyond the portrait itself so the halo has room
+              to clear the frame's edge rather than hugging its border. */}
+          <div className="relative flex h-64 w-64 items-center justify-center sm:h-80 sm:w-80 lg:h-96 lg:w-96">
+            <DecorField className="hidden sm:block">
+              <MaskedArt
+                src={lineHalo}
+                className="absolute inset-0 text-ink-faint opacity-60"
+              />
+            </DecorField>
+            <div className="relative rounded-xl border border-border bg-surface-solid p-2">
+              <img
+                key={portraitSource}
+                src={portraitSource}
+                alt="Portrait of Jasper D. Sergio"
+                className="h-64 w-64 rounded-lg object-cover sm:h-72 sm:w-72"
+              />
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <svg

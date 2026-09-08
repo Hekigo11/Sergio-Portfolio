@@ -5,6 +5,8 @@ import { formatRelativeTime } from "../../lib/formatRelativeTime";
 import { postComment, submitContact } from "../../lib/api";
 import MetaLabel from "../ui/MetaLabel";
 import SectionHeading from "../ui/SectionHeading";
+import { DecorField, MarkerTick, MaskedArt } from "../decor";
+import cloudTwo from "../../assets/cloud-2.svg";
 
 interface ConnectProps {
   darkMode: boolean;
@@ -322,7 +324,17 @@ const Connect = ({ darkMode: _darkMode }: ConnectProps) => {
   };
 
   return (
-    <section className="flex flex-col px-6 pt-10 pb-10 lg:h-full lg:overflow-hidden lg:px-8 lg:pt-14 lg:pb-8">
+    <section className="relative flex flex-col px-6 pt-10 pb-10 lg:h-full lg:overflow-hidden lg:px-8 lg:pt-14 lg:pb-8">
+      <DecorField className="hidden lg:block">
+        <MaskedArt
+          src={cloudTwo}
+          className="absolute top-6 left-[3%] w-48 text-ink-faint opacity-28 aspect-744/214"
+        />
+        <MarkerTick
+          rotate={8}
+          className="absolute top-12 right-[8%] h-6 w-6 text-ink-faint opacity-60"
+        />
+      </DecorField>
       <SectionHeading
         size="lg"
         className="mx-auto w-full max-w-6xl shrink-0"

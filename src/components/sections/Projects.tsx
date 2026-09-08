@@ -16,6 +16,10 @@ import {
 import MetaLabel from "../ui/MetaLabel";
 import SectionHeading from "../ui/SectionHeading";
 import Tag from "../ui/Tag";
+import { DecorField, MaskedArt } from "../decor";
+import cloudThree from "../../assets/cloud-3.svg";
+import lineartTwo from "../../assets/lineart-2.svg";
+import starsTwo from "../../assets/stars-2.svg";
 
 interface ProjectsProps {
   darkMode: boolean;
@@ -359,10 +363,10 @@ function MobileProjectCard({
 
   return (
     <article
-      className={`flex w-full flex-col overflow-hidden rounded-xl border p-4 ${cardClasses}`}
+      className={`flex w-full flex-col overflow-hidden rounded-xl border p-4 perf-flat ${cardClasses}`}
     >
       <div
-        className={`h-48 shrink-0 overflow-hidden rounded-lg border ${surfaceBg} ${line}`}
+        className={`h-48 shrink-0 overflow-hidden rounded-lg border perf-flat ${surfaceBg} ${line}`}
       >
         {hasImage ? (
           <ProjectImageCarousel images={images} alt={project.title} />
@@ -372,16 +376,11 @@ function MobileProjectCard({
       </div>
 
       <div className="mt-6 flex flex-col">
-        <div className="flex items-center justify-between gap-3">
-          <Tag tone="brass">{role}</Tag>
-          {project.timeline && (
-            <MetaLabel className="shrink-0 tabular-nums">
-              {project.timeline}
-            </MetaLabel>
-          )}
-        </div>
+        {project.timeline && (
+          <MetaLabel className="tabular-nums">{project.timeline}</MetaLabel>
+        )}
 
-        <h3 className="mt-4 font-display text-xl leading-tight font-bold tracking-tight text-ink">
+        <h3 className="mt-2 font-display text-xl leading-tight font-bold tracking-tight text-ink">
           {project.title}
         </h3>
 
@@ -412,6 +411,11 @@ function MobileProjectCard({
               </Tag>
             ))}
           </div>
+        </div>
+
+        <div className="mt-5 flex items-center gap-2">
+          <MetaLabel as="span">Role:</MetaLabel>
+          <Tag tone="brass">{role}</Tag>
         </div>
       </div>
     </article>
@@ -487,10 +491,10 @@ function CoverflowProjectCard({
         tabIndex={0}
         aria-label={`View ${project.title}`}
         style={{ scale, opacity }}
-        className={`flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border p-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
+        className={`flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border p-5 perf-flat lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
       >
         <div
-          className={`h-56 w-full shrink-0 self-center overflow-hidden rounded-lg border sm:h-64 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
+          className={`h-56 w-full shrink-0 self-center overflow-hidden rounded-lg border perf-flat sm:h-64 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
         >
           {hasImage ? (
             <ProjectImageCarousel images={images} alt={project.title} />
@@ -504,25 +508,16 @@ function CoverflowProjectCard({
           className="mt-6 min-h-0 flex-1 overflow-hidden lg:mt-0"
         >
           <div ref={contentRef} style={{ "--fit": fitScale } as CSSProperties}>
-            <div className="flex items-center justify-between gap-3">
-              <Tag
-                tone="brass"
+            {project.timeline && (
+              <MetaLabel
                 size="custom"
-                className="px-[calc(0.75rem*var(--fit))] py-[calc(0.25rem*var(--fit))] text-[calc(0.6875rem*var(--fit))]"
+                className="shrink-0 text-[calc(0.7rem*var(--fit))] tracking-[0.2em] tabular-nums"
               >
-                {role}
-              </Tag>
-              {project.timeline && (
-                <MetaLabel
-                  size="custom"
-                  className="shrink-0 text-[calc(0.7rem*var(--fit))] tracking-[0.2em] tabular-nums"
-                >
-                  {project.timeline}
-                </MetaLabel>
-              )}
-            </div>
+                {project.timeline}
+              </MetaLabel>
+            )}
 
-            <h3 className="mt-[calc(0.75rem*var(--fit))] font-display text-[calc(1.25rem*var(--fit))] leading-[1.15] font-bold tracking-tight text-ink lg:text-[calc(1.875rem*var(--fit))]">
+            <h3 className="mt-[calc(0.5rem*var(--fit))] font-display text-[calc(1.25rem*var(--fit))] leading-[1.15] font-bold tracking-tight text-ink lg:text-[calc(1.875rem*var(--fit))]">
               {project.title}
             </h3>
 
@@ -574,6 +569,22 @@ function CoverflowProjectCard({
                   </Tag>
                 ))}
               </div>
+            </div>
+
+            <div className="mt-[calc(1rem*var(--fit))] flex items-center gap-[calc(0.5rem*var(--fit))]">
+              <MetaLabel
+                size="custom"
+                className="text-[calc(0.625rem*var(--fit))] tracking-[0.22em]"
+              >
+                Role:
+              </MetaLabel>
+              <Tag
+                tone="brass"
+                size="custom"
+                className="px-[calc(0.75rem*var(--fit))] py-[calc(0.25rem*var(--fit))] text-[calc(0.6875rem*var(--fit))]"
+              >
+                {role}
+              </Tag>
             </div>
           </div>
         </div>
@@ -660,6 +671,12 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
       if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
       if (event.deltaY === 0) return;
       event.preventDefault();
+      // This track claims every vertical wheel tick over it, at every scroll
+      // position — including fully clamped at either end. Without this, an
+      // event that's already being redirected here would also bubble up to
+      // Section's scroll-chain listener and fire section navigation from the
+      // same tick, contradicting the horizontal redirect happening below.
+      event.stopPropagation();
       const maxScroll = el.scrollWidth - el.clientWidth;
       const base = wheelTargetRef.current ?? el.scrollLeft;
       wheelTargetRef.current = Math.max(
@@ -813,7 +830,21 @@ const Projects = ({ darkMode: _darkMode }: ProjectsProps) => {
   };
 
   return (
-    <section className="flex flex-col px-6 pt-10 pb-6 sm:h-full sm:overflow-hidden sm:px-10 lg:px-8 lg:pt-14">
+    <section className="relative flex flex-col px-6 pt-10 pb-6 sm:h-full sm:overflow-hidden sm:px-10 lg:px-8 lg:pt-14">
+      <DecorField className="hidden lg:block">
+        <MaskedArt
+          src={cloudThree}
+          className="absolute top-3 right-[5%] w-48 text-ink-faint opacity-40 aspect-714/234"
+        />
+        <MaskedArt
+          src={lineartTwo}
+          className="absolute right-[3%] bottom-[4%] w-28 text-ink-faint opacity-25 aspect-728/738 dark:hidden"
+        />
+        <MaskedArt
+          src={starsTwo}
+          className="absolute right-[3%] bottom-[5%] hidden w-28 text-ink-faint opacity-35 aspect-558/523 dark:block"
+        />
+      </DecorField>
       <SectionHeading size="lg" className="mx-auto w-full shrink-0">
         Projects
       </SectionHeading>
