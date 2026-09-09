@@ -33,7 +33,8 @@ interface SpatialCanvasProps {
 const TRANSITION_SECONDS = 0.7;
 const EASING_TRAVEL = [0.22, 1, 0.36, 1] as const;
 
-// The header the canvas sits under; the canvas is `100vh` minus this.
+// The header the canvas sits under; the canvas is --app-height, the
+// dvh-derived viewport height minus this (see index.css).
 const HEADER_HEIGHT = 64;
 
 export function SpatialCanvas({
@@ -74,7 +75,7 @@ export function SpatialCanvas({
   // device travels the same number of its own screens.
   //
   // Seeded from the window so the very first paint is already correct: the
-  // canvas is exactly `100vw` by `100vh - 4rem`, and nothing can scroll, so
+  // canvas is exactly `100vw` by --app-height, and nothing can scroll, so
   // there is no scrollbar to account for.
   const [step, setStep] = useState(() => ({
     x: (typeof window === "undefined" ? 0 : window.innerWidth) * SECTION_SPAN,
@@ -110,7 +111,7 @@ export function SpatialCanvas({
     <ScrollFlowProvider>
       <div
         ref={canvasRef}
-        className="relative h-[calc(100vh-4rem)] w-full overflow-hidden"
+        className="relative h-(--app-height) w-full overflow-hidden"
       >
         <motion.div
           className={`absolute inset-0 ${panning ? "will-change-transform" : ""}`}
@@ -127,28 +128,34 @@ export function SpatialCanvas({
                 }
           }
         >
-          {Object.entries(sections).map(([id, section]) => (
-            <Section
-              key={id}
-              id={id}
-              label={section.label}
-              position={positionOf(section)}
-              darkMode={darkMode}
-              visible={id === activeSection}
-              sectionOrder={sectionOrder}
-              onNavigate={onNavigate}
-            >
-              {id === "home" ? (
-                <Home darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
-              ) : id === "about" ? (
-                <About darkMode={darkMode} />
-              ) : id === "projects" ? (
-                <Projects darkMode={darkMode} />
-              ) : id === "connect" ? (
-                <Connect darkMode={darkMode} />
-              ) : undefined}
-            </Section>
-          ))}
+          {Object.entries(sections).map(([id, section], index) => {
+            const nextId = sectionOrder[index + 1];
+            return (
+              <Section
+                key={id}
+                id={id}
+                label={section.label}
+                position={positionOf(section)}
+                darkMode={darkMode}
+                visible={id === activeSection}
+                sectionOrder={sectionOrder}
+                onNavigate={onNavigate}
+                nextSection={
+                  nextId ? { id: nextId, label: sections[nextId].label } : undefined
+                }
+              >
+                {id === "home" ? (
+                  <Home darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
+                ) : id === "about" ? (
+                  <About darkMode={darkMode} />
+                ) : id === "projects" ? (
+                  <Projects darkMode={darkMode} />
+                ) : id === "connect" ? (
+                  <Connect darkMode={darkMode} />
+                ) : undefined}
+              </Section>
+            );
+          })}
         </motion.div>
       </div>
     </ScrollFlowProvider>

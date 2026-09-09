@@ -5,6 +5,14 @@
    `prefers-color-scheme`. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* Touch devices, keyed on hover rather than width. The distinction that
+   matters here is not screen size but input: the scroll chain that carries a
+   reader from one section into the next is driven by `wheel` events, which a
+   touchscreen never fires. A phone and an iPad are equally stranded; a narrow
+   desktop window is not. `hover: none` names exactly that set — a laptop with
+   a touchscreen still reports `hover: hover` for its primary pointer. */
+@custom-variant touch (@media (hover: none));
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Old Standard TT", ui-serif, Georgia, serif;
@@ -64,6 +72,20 @@
   --dur-press: 110ms;
   /* Routine state change (hover, focus, colour). */
   --dur-state: 200ms;
+
+  /* The viewport, and the app shell below the 64px header.
+     `dvh`, not `vh`, and the reason is specific to this app: `100vh` on iOS
+     Safari is the *large* viewport — the height with the browser toolbar
+     retracted. A normal page earns that height by scrolling, which retracts
+     the toolbar. This one never can: `html` and `body` are `overflow: hidden`
+     and all scrolling happens inside the section containers, so the toolbar
+     stays expanded for the entire visit and the bottom ~50px of every
+     full-height element sits permanently underneath it, unreachable. That is
+     what put the mobile drawer's theme toggle out of tapping range.
+     Because the body genuinely cannot scroll, `dvh` here is also stable —
+     there is no toolbar-retraction reflow to jitter against. */
+  --viewport-height: 100vh;
+  --app-height: calc(100vh - 4rem);
   /* The control transition contract, held in a variable because `.press` has
      to restate it: `transition` is a shorthand, so a class that adds transform
      easing would otherwise drop every colour transition the element inherited
@@ -88,9 +110,19 @@ html {
   }
 }
 
+/* Kept as a separate @supports block rather than inline fallbacks so the
+   `vh` values above stand on their own for anything that can't parse `dvh`
+   (pre-15.4 Safari, pre-108 Chrome). */
+@supports (height: 100dvh) {
+  :root {
+    --viewport-height: 100dvh;
+    --app-height: calc(100dvh - 4rem);
+  }
+}
+
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: var(--viewport-height);
   overflow: hidden;
   font-family: var(--font-sans);
   background: var(--color-bg);
@@ -101,7 +133,7 @@ body {
 }
 
 #root {
-  min-height: 100vh;
+  min-height: var(--viewport-height);
   overflow: hidden;
 }
 

@@ -164,7 +164,7 @@ export function StickyNavbar({
               transition: { duration: 0.16, ease: EASING },
             }}
             transition={{ duration: 0.28, ease: EASING }}
-            className="fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col bg-bg/98 dark:bg-bg/85 dark:backdrop-blur-md md:hidden"
+            className="fixed inset-x-0 top-16 z-40 flex h-(--app-height) flex-col bg-bg/98 dark:bg-bg/85 dark:backdrop-blur-md md:hidden"
           >
             <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-between px-6 py-8 sm:px-10">
               <ul className="flex flex-col">

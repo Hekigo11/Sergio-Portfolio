@@ -166,7 +166,7 @@ const About = ({ darkMode }: AboutProps) => {
 
   return (
     <div className="text-ink">
-      <section className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-end px-6 py-14 sm:px-10 lg:px-8 lg:py-20">
+      <section className="relative mx-auto flex min-h-(--app-height) w-full max-w-6xl items-end px-6 py-14 sm:px-10 lg:px-8 lg:py-20">
         <DecorField className="hidden sm:block">
           <MaskedArt
             src={cloudTwo}
@@ -192,7 +192,7 @@ const About = ({ darkMode }: AboutProps) => {
         </div>
       </section>
 
-      <section className="relative min-h-[calc(100vh-4rem)] border-t border-border">
+      <section className="relative min-h-(--app-height) border-t border-border">
         <DecorField className="hidden sm:block">
           <MaskedArt
             src={cloudThree}
@@ -207,7 +207,7 @@ const About = ({ darkMode }: AboutProps) => {
             className="absolute bottom-[8%] left-[8%] hidden w-24 text-ink-faint opacity-45 aspect-582/750 lg:w-32 dark:block"
           />
         </DecorField>
-        <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center px-6 py-20 text-center sm:px-10 lg:px-8">
+        <div className="mx-auto flex min-h-(--app-height) w-full max-w-6xl items-center justify-center px-6 py-20 text-center sm:px-10 lg:px-8">
           <div className="max-w-5xl">
             <MetaLabel size="sm" as="p">
               My Inspiration:

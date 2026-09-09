@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef, type ReactNode } from "react";
+import NextSectionCue from "./NextSectionCue";
 import { useScrollFlowRegistry } from "../scroll/scrollFlowContext";
 import { useSectionScrollFlow } from "../scroll/useSectionScrollFlow";
 
@@ -14,6 +15,9 @@ interface SectionProps {
   sectionOrder?: string[];
   /** Scrolling past this section's top/bottom edge navigates to a neighbor. */
   onNavigate?: (id: string) => void;
+  /** The section after this one in reading order, if there is one. Drives the
+   * touch-only cue at the bottom; the last section gets none. */
+  nextSection?: { id: string; label: string };
 }
 
 const filler = [
@@ -45,6 +49,7 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
     className = "",
     sectionOrder,
     onNavigate,
+    nextSection,
   },
   ref,
 ) {
@@ -98,7 +103,7 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
     >
       <div
         ref={scrollContainerRef}
-        className="flex h-[calc(100vh-4rem)] w-screen flex-col overflow-y-auto overscroll-contain text-ink"
+        className="flex h-(--app-height) w-screen flex-col overflow-y-auto overscroll-contain text-ink"
       >
         {children ?? (
           <>
@@ -116,6 +121,15 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
               ))}
             </div>
           </>
+        )}
+
+        {/* Last in the scroll content, so it is reached by scrolling to the
+            end rather than floating over the section the whole time. */}
+        {nextSection && onNavigate && (
+          <NextSectionCue
+            label={nextSection.label}
+            onNavigate={() => onNavigate(nextSection.id)}
+          />
         )}
       </div>
     </section>

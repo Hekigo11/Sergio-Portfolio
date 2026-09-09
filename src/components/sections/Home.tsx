@@ -21,7 +21,7 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
   const showVisitorNotes = !notesLoading && visitorNotes.length > 0;
 
   return (
-    <div className="relative mx-auto grid min-h-full w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-10 lg:px-8 xl:gap-16">
+    <div className="relative mx-auto grid min-h-full w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:min-h-(--app-height) lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-10 lg:px-8 xl:gap-16">
       {/* Theme-paired flourish: the lineart curl is the day mark, the star
           cluster the night one, sharing a slot so either theme shows the
           same number of marks. */}
