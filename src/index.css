@@ -54,11 +54,38 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* One easing for the whole site. It is the same curve the spatial camera
+     travels on (SpatialCanvas / navbar EASING), so a hover rule and a 1800px
+     pan are recognisably the same hand — an exponential settle, never a
+     bounce. */
+  --ease-journal: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Immediate acknowledgement (press). */
+  --dur-press: 110ms;
+  /* Routine state change (hover, focus, colour). */
+  --dur-state: 200ms;
+  /* The control transition contract, held in a variable because `.press` has
+     to restate it: `transition` is a shorthand, so a class that adds transform
+     easing would otherwise drop every colour transition the element inherited
+     from the base rule. */
+  --transition-control:
+    color var(--dur-state) var(--ease-journal),
+    background-color var(--dur-state) var(--ease-journal),
+    border-color var(--dur-state) var(--ease-journal),
+    box-shadow var(--dur-state) var(--ease-journal),
+    opacity var(--dur-state) var(--ease-journal);
 }
 
 html {
-  scroll-behavior: smooth;
   overflow: hidden;
+}
+
+/* Smooth scrolling is spatial movement the visitor did not ask for; a reduced-
+   motion visitor gets the same destination, arrived at instantly. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -69,8 +96,8 @@ body {
   background: var(--color-bg);
   color: var(--color-ink);
   transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+    background-color 0.3s var(--ease-journal),
+    color 0.3s var(--ease-journal);
 }
 
 #root {
@@ -92,9 +119,30 @@ button {
   color: inherit;
 }
 
+/* One transition contract for every control, and it is deliberately a list
+   rather than `all`. `all` transitions the focus outline (so a focus ring
+   fades in 200ms after the key press, reading as lag), and it fights any
+   transform Motion is driving on the same element. Material properties only:
+   anything that wants transform easing opts in, and press lands instantly. */
 button,
-a {
-  transition: all 0.2s ease;
+a,
+input,
+textarea,
+select,
+summary {
+  transition: var(--transition-control);
+}
+
+/* The caret and the selection are browser surfaces that ship belonging to no
+   design system; both are the interactive accent here. */
+input,
+textarea {
+  caret-color: var(--color-accent);
+}
+
+::placeholder {
+  color: var(--color-ink-muted);
+  opacity: 1;
 }
 
 ::selection {
@@ -105,6 +153,66 @@ a {
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+/* Fields already carry a focus treatment of their own (accent border plus a
+   soft accent ring). The global outline on top of that is a third concentric
+   ring around one input — the field's own treatment is the focus indicator. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+/* A control sitting on a photograph cannot use the page's accent ring: it
+   lands on whatever colour that pixel happens to be. These carry a white ring
+   inside a dark halo instead, which is legible over any plate in either
+   theme. The halo is a focus indicator, not depth — it is not a card shadow
+   and does not breach The Flat-By-Default Rule. */
+.focus-on-media:focus-visible {
+  outline-color: #fff;
+  box-shadow: 0 0 0 4px rgb(0 0 0 / 0.5);
+}
+
+/* Press: the control takes the touch. 1px, and it survives reduced motion on
+   purpose — acknowledging a press is feedback, not decoration, and one pixel
+   is below the threshold that reads as travel. */
+.press {
+  transition:
+    var(--transition-control),
+    transform var(--dur-press) var(--ease-journal);
+}
+
+.press:active {
+  transform: translateY(1px);
+}
+
+/* The journal's underline. A hairline drawn in from the left on hover or
+   keyboard focus — the pencil version of the accent rule that marks the
+   section you are actually in, so the two read as one mark in two states.
+   Under reduced motion it fades in place instead of drawing. */
+.rule-draw {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-state) var(--ease-journal);
+}
+
+.group:hover .rule-draw,
+.group:focus-visible .rule-draw {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rule-draw {
+    transform: none;
+    opacity: 0;
+    transition: opacity var(--dur-state) linear;
+  }
+
+  .group:hover .rule-draw,
+  .group:focus-visible .rule-draw {
+    opacity: 1;
+  }
 }
 
 /* Firefox */
@@ -127,6 +235,10 @@ a {
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-ink-faint);
 }
 
 .scrollbar-none {
@@ -160,6 +272,18 @@ a {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+}
+
+/* The supersonic layer. Both marks below are mounted only for the ~640ms of a
+   camera journey and only when the visitor has not asked for reduced motion
+   (see useTravelBurst), so `will-change` here is scoped to an element that
+   exists exclusively while it is animating. Both rest at `opacity: 0` outside
+   the preference block, so if the keyframes never apply the layer is invisible
+   rather than a set of static streaks frozen across the sky. */
+.star-streak,
+.wind-gust {
+  opacity: 0;
+  will-change: transform, opacity;
 }
 
 /* NightSky's star twinkle: a cheap, GPU-composited opacity pulse — no JS,
@@ -207,5 +331,65 @@ a {
   .wind-drift {
     animation: wind-drift var(--drift-duration, 52s) ease-in-out infinite;
     animation-delay: var(--drift-delay, 0s);
+  }
+
+  /* The night burst: one star's trail. Motion moves the field as a whole;
+     this stretches each streak along the camera vector and takes it away
+     again. `scaleX` on a box that is already rotated to the vector means the
+     stretch runs along the travel axis whichever way the journey went, and
+     the whole thing stays transform-and-opacity — no layout, no repaint, no
+     filter. `both` holds the 0% state before the per-trail delay elapses, so
+     nothing flashes at full length waiting for its turn. */
+  @keyframes star-streak {
+    0% {
+      opacity: 0;
+      transform: rotate(var(--streak-angle, 0deg)) scaleX(0.12);
+    }
+    18% {
+      opacity: var(--streak-peak, 0.8);
+      transform: rotate(var(--streak-angle, 0deg)) scaleX(1);
+    }
+    46% {
+      opacity: var(--streak-peak, 0.8);
+      transform: rotate(var(--streak-angle, 0deg)) scaleX(1.08);
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(var(--streak-angle, 0deg)) scaleX(0.35);
+    }
+  }
+
+  .star-streak {
+    animation: star-streak var(--streak-duration, 560ms)
+      cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--streak-delay, 0ms);
+  }
+
+  /* The day burst: one stroke of displaced air. Its frame is already rotated
+     to the camera vector, so the stroke only ever travels local -x — against
+     the camera, the way air moves past something going through it. The stroke
+     itself keeps `vectorEffect="non-scaling-stroke"`, so scaling the box
+     lengthens the gust without ever thickening the line. */
+  @keyframes wind-gust {
+    0% {
+      opacity: 0;
+      transform: translate3d(10%, 0, 0) scaleX(0.82);
+    }
+    20% {
+      opacity: var(--gust-peak, 0.3);
+    }
+    48% {
+      opacity: var(--gust-peak, 0.3);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(-30%, 0, 0) scaleX(1.2);
+    }
+  }
+
+  .wind-gust {
+    animation: wind-gust var(--gust-duration, 600ms)
+      cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--gust-delay, 0ms);
   }
 }

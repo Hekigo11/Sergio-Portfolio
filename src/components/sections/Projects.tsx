@@ -1,6 +1,7 @@
 import {
   AnimatePresence,
   motion,
+  useReducedMotion,
   useScroll,
   useTransform,
   type MotionValue,
@@ -13,10 +14,12 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import CarouselDots from "../ui/CarouselDots";
 import MetaLabel from "../ui/MetaLabel";
 import SectionHeading from "../ui/SectionHeading";
 import Tag from "../ui/Tag";
 import { DecorField, MaskedArt } from "../decor";
+import { useHorizontalScrollConsumer } from "../../scroll/useHorizontalScrollConsumer";
 import cloudThree from "../../assets/cloud-3.svg";
 import lineartTwo from "../../assets/lineart-2.svg";
 import starsTwo from "../../assets/stars-2.svg";
@@ -107,25 +110,33 @@ const AUTO_ADVANCE_MS = 4000;
 function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
   const [index, setIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const hasMultiple = images.length > 1;
 
   const goTo = (next: number) => {
     setIndex((next + images.length) % images.length);
   };
 
+  // An auto-advancing plate is movement nobody asked for, so a reduced-motion
+  // visitor gets a still image and the controls to change it themselves. It
+  // also holds while the plate has keyboard focus — stepping through the dots
+  // only to have the timer move the image underneath is the same interruption
+  // hovering already protects a mouse user from.
   useEffect(() => {
-    if (!hasMultiple || isPaused) return;
+    if (!hasMultiple || isPaused || shouldReduceMotion) return;
     const id = setInterval(() => {
       setIndex((current) => (current + 1) % images.length);
     }, AUTO_ADVANCE_MS);
     return () => clearInterval(id);
-  }, [hasMultiple, isPaused, images.length, index]);
+  }, [hasMultiple, isPaused, shouldReduceMotion, images.length, index]);
 
   return (
     <div
       className="relative h-full w-full overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={() => setIsPaused(false)}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.img
@@ -149,7 +160,7 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
               goTo(index - 1);
             }}
             aria-label="Previous image"
-            className="absolute top-1/2 left-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65 sm:h-7 sm:w-7"
+            className="focus-on-media absolute top-1/2 left-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm hover:bg-black/70 active:bg-black/85 sm:h-7 sm:w-7"
           >
             <svg
               aria-hidden="true"
@@ -171,7 +182,7 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
               goTo(index + 1);
             }}
             aria-label="Next image"
-            className="absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition hover:bg-black/65 sm:h-7 sm:w-7"
+            className="focus-on-media absolute top-1/2 right-2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm hover:bg-black/70 active:bg-black/85 sm:h-7 sm:w-7"
           >
             <svg
               aria-hidden="true"
@@ -186,27 +197,15 @@ function ProjectImageCarousel({ images, alt }: ProjectImageCarouselProps) {
               <path d="m9 18 6-6-6-6" />
             </svg>
           </button>
-          <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1.5 px-3 pb-2">
-            {images.map((image, i) => (
-              <button
-                key={image}
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIndex(i);
-                }}
-                aria-label={`Go to image ${i + 1}`}
-                aria-current={i === index}
-                className="group p-2"
-              >
-                <span
-                  className={`block h-1.5 w-1.5 rounded-full shadow-[0_0_3px_rgba(0,0,0,0.7)] transition ${
-                    i === index ? "bg-white" : "bg-white/50 group-hover:bg-white/75"
-                  }`}
-                />
-              </button>
-            ))}
-          </div>
+          <CarouselDots
+            count={images.length}
+            activeIndex={index}
+            onSelect={setIndex}
+            label={`${alt} images`}
+            itemLabel={(i) => `Go to image ${i + 1}`}
+            tone="media"
+            className="absolute inset-x-0 bottom-0 justify-center px-3 pb-1"
+          />
         </>
       )}
     </div>
@@ -436,6 +435,7 @@ function CoverflowProjectCard({
   gap,
   sidePadding,
   onSelect,
+  onFocusCard,
 }: {
   project: ProjectItem;
   images: string[];
@@ -447,9 +447,13 @@ function CoverflowProjectCard({
   gap: number;
   sidePadding: number;
   onSelect: () => void;
+  onFocusCard: () => void;
 }) {
   const { cardClasses, muted, line, surfaceBg } = theme;
-  const { containerRef, contentRef, scale: fitScale } = useFitScale();
+  const { containerRef, contentRef, scale: fitScale } = useFitScale({
+    min: 0.6,
+    steps: 9,
+  });
   const hasImage = images.length > 0;
   const role = project.role ?? DEFAULT_ROLE;
 
@@ -482,19 +486,37 @@ function CoverflowProjectCard({
       <motion.div
         onClick={onSelect}
         onKeyDown={(event) => {
+          // Only when the card itself has focus. The plate's arrows and dots
+          // are real buttons inside this one, and their own Enter/Space was
+          // bubbling up here too — changing the image and re-centring the card
+          // on a single key press.
+          if (event.target !== event.currentTarget) return;
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             onSelect();
           }
         }}
+        // Tabbing to a card brings it to the centre, the same thing clicking
+        // one does. Without this a keyboard visitor lands on a card sitting at
+        // 82% scale half off the edge of the track, focused but unreadable.
+        // Guarded on :focus-visible so a pointer press — which also focuses
+        // this div, including the pointer-down that starts a drag — never
+        // yanks the track out from under the gesture.
+        onFocus={(event) => {
+          if (event.currentTarget.matches(":focus-visible")) onFocusCard();
+        }}
         role="button"
         tabIndex={0}
         aria-label={`View ${project.title}`}
+        // Deliberately no press offset here. This card is also the drag
+        // surface for the track, and a tap state would sit held down for the
+        // whole of a drag. Its acknowledgement is the glide to centre, and at
+        // rest its hairline goes from `border` to `border-strong`.
         style={{ scale, opacity }}
-        className={`flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border p-5 perf-flat lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
+        className={`group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border p-5 transition-colors duration-200 perf-flat hover:border-border-strong lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-7 lg:p-7 ${cardClasses}`}
       >
         <div
-          className={`h-56 w-full shrink-0 self-center overflow-hidden rounded-lg border perf-flat sm:h-64 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
+          className={`h-48 w-full shrink-0 self-center overflow-hidden rounded-lg border perf-flat sm:h-56 lg:aspect-3/2 lg:h-auto ${surfaceBg} ${line}`}
         >
           {hasImage ? (
             <ProjectImageCarousel images={images} alt={project.title} />
@@ -578,10 +600,13 @@ function CoverflowProjectCard({
               >
                 Role:
               </MetaLabel>
+              {/* The specimen tag warms with its own card rather than
+                  offering a hover of its own — it is a label, not a control,
+                  and must never advertise an affordance it does not have. */}
               <Tag
                 tone="brass"
                 size="custom"
-                className="px-[calc(0.75rem*var(--fit))] py-[calc(0.25rem*var(--fit))] text-[calc(0.6875rem*var(--fit))]"
+                className="px-[calc(0.75rem*var(--fit))] py-[calc(0.25rem*var(--fit))] text-[calc(0.6875rem*var(--fit))] transition-colors duration-200 group-hover:border-brass/60 group-hover:bg-brass/20"
               >
                 {role}
               </Tag>
@@ -655,44 +680,35 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
     wheelRafRef.current = requestAnimationFrame(stepWheelEase);
   };
 
-  // React attaches onWheel as a passive listener by default, so preventDefault()
-  // inside it silently no-ops (and warns). Attach natively with passive: false
-  // so redirecting a vertical wheel into horizontal scroll actually works.
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-
-    const handleWheel = (event: globalThis.WheelEvent) => {
-      // A real horizontal gesture (trackpad swipe) already scrolls this native
-      // overflow-x container on its own, with the browser's own momentum curve —
-      // leave it alone. Only step in for a plain vertical wheel, which has
-      // nothing else to scroll here: ease it toward an accumulating target
-      // instead of jumping scrollLeft directly, so ticks glide instead of step.
-      if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-      if (event.deltaY === 0) return;
-      event.preventDefault();
-      // This track claims every vertical wheel tick over it, at every scroll
-      // position — including fully clamped at either end. Without this, an
-      // event that's already being redirected here would also bubble up to
-      // Section's scroll-chain listener and fire section navigation from the
-      // same tick, contradicting the horizontal redirect happening below.
-      event.stopPropagation();
+  // The track no longer listens for wheel events itself — the section's scroll
+  // controller owns every tick and hands one here when this still has somewhere
+  // to go (see src/scroll/). Vertical wheel eases toward an accumulating target
+  // rather than jumping scrollLeft, so ticks glide instead of step; releasing
+  // the claim at either end is what lets scroll flow continue past Projects
+  // instead of the track swallowing wheel input forever.
+  useHorizontalScrollConsumer("projects", {
+    canConsume: (deltaY) => {
+      const el = trackRef.current;
+      if (!el) return false;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 0) return false;
+      // Measured against the eased target, not the live scrollLeft, so rapid
+      // ticks mid-glide still see the room they are already heading into.
+      const position = wheelTargetRef.current ?? el.scrollLeft;
+      return deltaY > 0 ? position < maxScroll - 1 : position > 1;
+    },
+    consume: (deltaY) => {
+      const el = trackRef.current;
+      if (!el) return;
       const maxScroll = el.scrollWidth - el.clientWidth;
       const base = wheelTargetRef.current ?? el.scrollLeft;
-      wheelTargetRef.current = Math.max(
-        0,
-        Math.min(maxScroll, base + event.deltaY),
-      );
+      wheelTargetRef.current = Math.max(0, Math.min(maxScroll, base + deltaY));
       cancelAnimationFrame(wheelRafRef.current);
       wheelRafRef.current = requestAnimationFrame(stepWheelEase);
-    };
+    },
+  });
 
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => {
-      el.removeEventListener("wheel", handleWheel);
-      cancelAnimationFrame(wheelRafRef.current);
-    };
-  }, []);
+  useEffect(() => () => cancelAnimationFrame(wheelRafRef.current), []);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== "mouse") return;
@@ -797,6 +813,7 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
               gap={CARD_GAP}
               sidePadding={sidePadding}
               onSelect={() => handleCardSelect(i)}
+              onFocusCard={() => scrollToIndex(i)}
             />
           ))}
         {cardWidth > 0 && (
@@ -820,7 +837,9 @@ function CoverflowTrack({ theme }: { theme: ThemeClasses }) {
 }
 
 const Projects = ({ darkMode: _darkMode }: ProjectsProps) => {
-  const isCoverflow = useMediaQuery("(min-width: 640px)");
+  const isCoverflow = useMediaQuery(
+    "(min-width: 1024px) and (min-height: 620px), (min-width: 640px) and (min-height: 760px)",
+  );
 
   const theme: ThemeClasses = {
     cardClasses: "border-border bg-surface text-ink",
@@ -830,7 +849,11 @@ const Projects = ({ darkMode: _darkMode }: ProjectsProps) => {
   };
 
   return (
-    <section className="relative flex flex-col px-6 pt-10 pb-6 sm:h-full sm:overflow-hidden sm:px-10 lg:px-8 lg:pt-14">
+    <section
+      className={`relative flex flex-col px-6 pt-10 pb-6 sm:px-10 lg:px-8 lg:pt-14 ${
+        isCoverflow ? "h-full overflow-hidden" : ""
+      }`}
+    >
       <DecorField className="hidden lg:block">
         <MaskedArt
           src={cloudThree}
@@ -852,7 +875,7 @@ const Projects = ({ darkMode: _darkMode }: ProjectsProps) => {
       {isCoverflow ? (
         <CoverflowTrack theme={theme} />
       ) : (
-        <div className="mx-auto mt-10 flex w-full flex-col gap-6">
+        <div className="mx-auto mt-10 flex w-full max-w-3xl flex-col gap-6">
           {projectitems.map((project) => (
             <MobileProjectCard
               key={project.slug}

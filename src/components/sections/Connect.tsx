@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type FormEvent, useState } from "react";
 import { useComments } from "../../hooks/useComments";
 import { formatRelativeTime } from "../../lib/formatRelativeTime";
@@ -69,11 +69,15 @@ function ContactRow({
       href={href}
       target={opensNewTab ? "_blank" : undefined}
       rel={opensNewTab ? "noreferrer" : undefined}
-      className={`group ${rowClasses} transition`}
+      // The whole row is the target, so the whole row answers: a faint accent
+      // wash the width of the ledger and its own rule darkening. Full-bleed on
+      // purpose — insetting the wash would break the ruled column the rows are
+      // read down.
+      className={`group ${rowClasses} hover:border-border-strong hover:bg-accent/5 active:bg-accent/10`}
     >
       <MetaLabel className="shrink-0 sm:w-20">{label}</MetaLabel>
       <span
-        className={`truncate text-sm font-semibold text-ink transition ${accentHover}`}
+        className={`truncate text-sm font-semibold text-ink transition-colors duration-200 ${accentHover}`}
       >
         {value}
       </span>
@@ -85,7 +89,7 @@ function ContactRow({
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="hidden h-3.5 w-3.5 shrink-0 text-ink-faint transition group-hover:text-accent sm:ml-auto sm:block"
+        className="hidden h-3.5 w-3.5 shrink-0 text-ink-faint transition-[color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0.5 group-hover:text-accent sm:ml-auto sm:block"
       >
         <path d="m9 18 6-6-6-6" />
       </svg>
@@ -95,6 +99,7 @@ function ContactRow({
 
 function ContactForm({ theme }: { theme: ThemeClasses }) {
   const { muted, fieldClasses, errorText } = theme;
+  const shouldReduceMotion = useReducedMotion();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
     "idle",
   );
@@ -121,80 +126,120 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
     }
   };
 
-  if (status === "success") {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-        <span
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 text-accent"
-          aria-hidden="true"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </span>
-        <p className="font-display text-lg font-bold text-ink">
-          Message sent — thanks!
-        </p>
-        <p className={`text-sm ${muted}`}>I'll get back to you soon.</p>
-        <button
-          type="button"
-          onClick={() => setStatus("idle")}
-          className={`mt-2 font-mono text-xs font-medium tracking-wide uppercase underline-offset-4 hover:underline ${muted}`}
-        >
-          Send another message
-        </button>
-      </div>
-    );
-  }
+  // The one authored moment on the surface: the check is drawn rather than
+  // shown. Sending the message is the whole point of the page, and a stroke
+  // being written is the journal's own idea of something being recorded.
+  const check = shouldReduceMotion
+    ? { initial: { pathLength: 1 }, transition: { duration: 0 } }
+    : {
+        initial: { pathLength: 0 },
+        transition: { duration: 0.5, delay: 0.15, ease: EASING },
+      };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4">
-      {/* Honeypot — hidden from real visitors, bots fill every field they can find. */}
-      <input
-        type="text"
-        name="company"
-        hidden
-        tabIndex={-1}
-        autoComplete="off"
-        aria-hidden="true"
-      />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-2">
-          <MetaLabel>Name</MetaLabel>
-          <input required name="name" maxLength={100} className={fieldClasses} />
-        </label>
-        <label className="flex flex-col gap-2">
-          <MetaLabel>Email</MetaLabel>
-          <input required type="email" name="email" className={fieldClasses} />
-        </label>
-      </div>
-      <label className="flex flex-1 flex-col gap-2">
-        <MetaLabel>Message</MetaLabel>
-        <textarea
-          required
-          name="message"
-          maxLength={2000}
-          rows={5}
-          className={`${fieldClasses} flex-1 resize-none`}
-        />
-      </label>
-      {status === "error" && <p className={`text-sm ${errorText}`}>{error}</p>}
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="min-h-11 self-start rounded-full bg-accent px-6 py-2.5 text-sm font-semibold tracking-tight text-accent-ink transition hover:bg-accent-hover disabled:opacity-60"
-      >
-        {status === "submitting" ? "Sending…" : "Send message"}
-      </button>
-    </form>
+    <AnimatePresence mode="wait" initial={false}>
+      {status === "success" ? (
+        <motion.div
+          key="sent"
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.14 } }}
+          transition={{ duration: 0.32, ease: EASING }}
+          className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center"
+        >
+          <span
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/40 text-accent"
+            aria-hidden="true"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <motion.path
+                d="M20 6 9 17l-5-5"
+                initial={check.initial}
+                animate={{ pathLength: 1 }}
+                transition={check.transition}
+              />
+            </svg>
+          </span>
+          <p className="font-display text-lg font-bold text-ink">
+            Message sent — thanks!
+          </p>
+          <p className={`text-sm ${muted}`}>I'll get back to you soon.</p>
+          <button
+            type="button"
+            onClick={() => setStatus("idle")}
+            className={`press mt-2 rounded-sm font-mono text-xs font-medium tracking-wide uppercase underline-offset-4 hover:text-ink hover:underline active:text-ink ${muted}`}
+          >
+            Send another message
+          </button>
+        </motion.div>
+      ) : (
+        <motion.form
+          key="form"
+          onSubmit={handleSubmit}
+          aria-busy={status === "submitting"}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.14 } }}
+          transition={{ duration: 0.28, ease: EASING }}
+          className="flex flex-1 flex-col gap-4"
+        >
+          {/* Honeypot — hidden from real visitors, bots fill every field they can find. */}
+          <input
+            type="text"
+            name="company"
+            hidden
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-2">
+              <MetaLabel>Name</MetaLabel>
+              <input required name="name" maxLength={100} className={fieldClasses} />
+            </label>
+            <label className="flex flex-col gap-2">
+              <MetaLabel>Email</MetaLabel>
+              <input required type="email" name="email" className={fieldClasses} />
+            </label>
+          </div>
+          <label className="flex flex-1 flex-col gap-2">
+            <MetaLabel>Message</MetaLabel>
+            <textarea
+              required
+              name="message"
+              maxLength={2000}
+              rows={3}
+              className={`${fieldClasses} flex-1 resize-none`}
+            />
+          </label>
+          {status === "error" && (
+            <motion.p
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, ease: EASING }}
+              className={`text-sm ${errorText}`}
+            >
+              {error}
+            </motion.p>
+          )}
+          <button
+            type="submit"
+            disabled={status === "submitting"}
+            className="press min-h-11 self-start rounded-full bg-accent px-6 py-2.5 text-sm font-semibold tracking-tight text-accent-ink hover:bg-accent-hover active:bg-accent-hover disabled:cursor-wait disabled:opacity-60"
+          >
+            {status === "submitting" ? "Sending…" : "Send message"}
+          </button>
+        </motion.form>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -231,7 +276,11 @@ function CommentComposer({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+    <form
+      onSubmit={handleSubmit}
+      aria-busy={status === "submitting"}
+      className="flex flex-col gap-3"
+    >
       <input
         type="text"
         name="company"
@@ -258,7 +307,7 @@ function CommentComposer({
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="min-h-11 shrink-0 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold tracking-tight text-accent-ink transition hover:bg-accent-hover disabled:opacity-60"
+          className="press min-h-11 shrink-0 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold tracking-tight text-accent-ink hover:bg-accent-hover active:bg-accent-hover disabled:cursor-wait disabled:opacity-60"
         >
           {status === "submitting" ? "Posting…" : "Post"}
         </button>
@@ -320,7 +369,7 @@ const Connect = ({ darkMode: _darkMode }: ConnectProps) => {
     accentHover: "group-hover:text-accent",
     errorText: "text-danger",
     fieldClasses:
-      "min-h-11 w-full rounded-lg border border-border bg-transparent px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20",
+      "min-h-11 w-full rounded-lg border border-border bg-transparent px-3.5 py-2.5 text-sm text-ink outline-none hover:border-border-strong focus:border-accent focus:ring-2 focus:ring-accent/20",
   };
 
   return (

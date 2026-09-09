@@ -1,7 +1,8 @@
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 import WordCarousel from "../WordCarousel";
-import { useWheelSnapScroll } from "../../hooks/useWheelSnapScroll";
+import { useHorizontalScrollConsumer } from "../../scroll/useHorizontalScrollConsumer";
+import { useSnapCarousel } from "../../scroll/useSnapCarousel";
 import MetaLabel from "../ui/MetaLabel";
 import SectionHeading from "../ui/SectionHeading";
 import Tag from "../ui/Tag";
@@ -155,9 +156,13 @@ const experience = [
 ];
 
 const About = ({ darkMode }: AboutProps) => {
+  const shouldReduceMotion = useReducedMotion();
   const skillsSectionRef = useRef<HTMLElement>(null);
   const skillsScrollRef = useRef<HTMLDivElement>(null);
-  useWheelSnapScroll({ hitAreaRef: skillsSectionRef, scrollRef: skillsScrollRef });
+  useHorizontalScrollConsumer(
+    "about",
+    useSnapCarousel(skillsScrollRef, { gateRef: skillsSectionRef }),
+  );
 
   return (
     <div className="text-ink">
@@ -177,12 +182,12 @@ const About = ({ darkMode }: AboutProps) => {
           />
         </DecorField>
         <div className="max-w-4xl pb-8">
-          <h1 className="font-display text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
             Bringing visualizations to reality.
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-ink-muted sm:text-xl">
-            A growing practice in turning ideas into clear, practical, and
-            human-centered systems.
+            {/* A growing practice in turning ideas into clear, practical, and
+            human-centered systems. */}
           </p>
         </div>
       </section>
@@ -265,7 +270,9 @@ const About = ({ darkMode }: AboutProps) => {
             {experience.map((item, index) => (
               <motion.article
                 key={`${item.role}-${item.period}`}
-                initial={{ opacity: 0, y: 24 }}
+                // Reduced motion keeps the entrance — an entry still arrives
+                // rather than being there all along — and drops the travel.
+                initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.25 }}
                 transition={{
@@ -344,7 +351,10 @@ const About = ({ darkMode }: AboutProps) => {
                       <li key={skill} className="flex items-center gap-3">
                         {skill}
                         {index < group.skills.length - 1 && (
-                          <span aria-hidden="true" className="text-sm text-ink-faint">
+                          <span
+                            aria-hidden="true"
+                            className="text-sm text-ink-faint"
+                          >
                             &middot;
                           </span>
                         )}

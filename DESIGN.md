@@ -117,18 +117,22 @@ A restrained palette: one neutral scale per theme (paper/ink or navy/glass), one
 
 ## Layout
 
-Single-page spatial canvas (unchanged by this pass): Home/About/Projects/Connect are absolutely positioned at fixed coordinates and the viewport pans between them via a Motion transform (`ease [0.22, 1, 0.36, 1]`, 0.7s). Each section scrolls independently inside a `h-[calc(100vh-4rem)]` frame under the sticky 64px header. Content is centered in a `max-w-6xl` (or `max-w-3xl`/`max-w-2xl` for reading columns) container with `px-6 sm:px-10 lg:px-8` gutters. Regions are divided by hairline `border-t` rules rather than background changes.
+Single-page spatial canvas: Home/About/Projects/Connect are absolutely positioned `SECTION_SPAN` **measured viewports** apart — currently 2.75, with About directly above Home, Projects to the right, Connect up and to the left — and the viewport pans between them via a Motion transform (`ease [0.22, 1, 0.36, 1]`, 0.7–1.35s by distance). `App.tsx` holds only the arrangement (`col`/`row`); `src/spatial/journey.ts` owns how far apart that is, how long crossing takes, and which way it went; `SpatialCanvas` measures its own box and multiplies. The canvas between sections is empty and paints nothing. Each section scrolls independently inside a `h-[calc(100vh-4rem)]` frame under the sticky 64px header. Content is centered in a `max-w-6xl` (or `max-w-3xl`/`max-w-2xl` for reading columns) container with `px-6 sm:px-10 lg:px-8` gutters. Regions are divided by hairline `border-t` rules rather than background changes.
 
 Each section is a different *page type* in the same journal, and the composition says which:
 
 - **Home — title page.** Asymmetric `[1fr, 0.72fr]` split; the name runs at display scale over a short `w-16` title rule; the portrait sits as a mounted plate across a full-height `lg:border-l` gutter rule. Visitor notes close the page as a quiet ruled band.
 - **About — essay pages and ledgers.** Full-viewport statement spreads (opening claim, inspiration) alternate with ledger regions (Education, Experience) where the date sits in an `8rem` right-aligned margin rail and the entry body runs in the wide column. Nested sub-roles indent behind a 1px `border-l`.
-- **Projects — catalog plates.** A height-bounded region: chapter head, coverflow track (`flex-1`), scroll hint. Card internals shrink-to-fit against `--fit` rather than scrolling.
+- **Projects — catalog plates.** A height-bounded region: chapter head, coverflow track (`flex-1`), scroll hint. Card internals shrink-to-fit against `--fit` rather than scrolling. The coverflow is chosen on **height as well as width** — `(min-width: 1024px) and (min-height: 620px), (min-width: 640px) and (min-height: 760px)` — because a plate is a fixed-height object, and the two-column card from `lg` needs less height than the stacked one below it. Anything shorter falls back to the same scrolling stacked list mobile uses; a landscape phone is 844px wide and has no business rendering a coverflow.
 - **Connect — correspondence page.** Two panels: a ruled contact directory above the message form, and the visitor-notes feed.
 
 Vertical rhythm is asymmetric by rule (below), not one repeated value: statement regions get viewport height, ledger regions `pt-24 pb-20` (`lg:pt-28 lg:pb-24`), and entries inside them `py-12`.
 
 ### Named Rules
+**The Viewport-Step Rule.** Section coordinates are a multiple of the measured viewport, never fixed pixels. Fixed coordinates fail at both ends of the range: a step smaller than the widest supported viewport lets the neighbouring section's box overlap the active one and bleed into the edge of the screen (the old 1800px step did this on any display 1800px or wider), and a step written for a desktop is a wildly different amount of *travel* on a phone — 1800px is 1.4 screen-widths on a laptop and 4.6 in the hand, so one pan reads as a glide at a desk and a whip-pan in the hand. Expressed in viewports the journey is the same gesture everywhere, and `SECTION_SPAN` becomes a free dial: the space between sections paints nothing and nothing off-screen is rasterised, so it can be raised as far as the design wants. Its only hard floor is ~1.15, below which two sections share the screen.
+
+**The Distance-Sets-Duration Rule.** A canvas this wide cannot use one fixed pan duration. `journeyDuration` scales it as the **square root** of distance, deliberately between the two wrong answers: linear scaling holds speed constant so a longer canvas is only more waiting, and a fixed duration makes a 2.5× longer journey 2.5× faster, which is a blur. The root gives ~1.6× the time for 2.5× the distance — further apart *and* quicker, which is the point of the effect. Anything measured against the pan derives from the same number rather than hard-coding one: the atmosphere's burst (`burstMs`), how far the star field surges and how long its trails linger (`journeyScale`), and the scroll-chain lockout in `useSectionScrollFlow`, which takes `MAX_JOURNEY_SECONDS` so a fast scroll can never skip a section mid-pan.
+
 **The Margin-Date Rule.** In any dated ledger (Education, Experience), the date is a mono annotation in its own right-aligned margin rail — never a line stacked inside the entry body. The rail collapses above the entry on mobile.
 
 **The Breathe-Above Rule.** Every heading carries more space above it than below (`pt-24` over `pb-20`; `mt-12` under a chapter rule). Regions never open and close on the same value.
@@ -146,6 +150,87 @@ Flat by design — no card, button, or panel in the system carries `box-shadow`.
 
 Restrained corner language: cards and framed panels use `rounded-lg`/`rounded-xl` (8–12px), never `rounded-2xl` or larger. Full pill radius (`rounded-full`) is reserved for controls and tags — the theme toggle track, submit buttons, role/stack badges, carousel dot indicators — never for content cards. The portrait photo sits inside a bordered "plate" frame (`rounded-xl border border-border bg-surface-solid p-2` wrapping a `rounded-lg` image) rather than being cropped directly to a rounded corner.
 
+## Motion & Interaction States
+
+Every control on the site shares one easing and one small vocabulary of
+responses, defined once in `src/index.css` rather than per component. The
+curve is `cubic-bezier(0.22, 1, 0.36, 1)` (`--ease-journal`) — the same curve
+the spatial camera travels on — so a hover rule and an 1800px pan are
+recognisably the same hand. Two durations: `--dur-press` (110ms) for
+acknowledgement, `--dur-state` (200ms) for a routine state change. Nothing in
+the system bounces, glows, or scales on hover.
+
+**The vocabulary.** Definition lives on the page's ground, in ink:
+
+- **Hover** shifts material, never size: a hairline goes `border` →
+  `border-strong`, muted ink goes to full ink or to accent, a ledger row takes
+  a 5% accent wash the width of its rule.
+- **A rule draws in.** `.rule-draw` is the shared hover underline — a hairline
+  scaled in from the left under a nav link or the wordmark. It is the pencil
+  version of the accent rule that marks the section you are actually in, and
+  that accent rule is the same mark inked: one `layoutId` span that travels
+  between links rather than being redrawn on each.
+- **Press** is `.press` — `translateY(1px)`, and nothing else. One pixel, on
+  buttons and links only.
+- **Focus** is the global `:focus-visible` accent outline at 2px offset, with
+  two documented exceptions below.
+- **State changes cross over.** A word, a visitor note, a project photo, or
+  the contact form's success panel replaces its predecessor through
+  `AnimatePresence` with `mode="wait"` — out in ~140ms, in at 280–340ms.
+  Nothing ever cuts, and nothing ever overlaps mid-sentence.
+
+**The one authored moment** is the check on a sent contact message: the stroke
+is drawn (`pathLength` 0 → 1) rather than shown. Sending the message is what
+the page is for, and a stroke being written is the journal's own idea of
+something being recorded. There is exactly one of these; a second would make
+neither of them special.
+
+### Named Rules
+
+**The Exit-Faster Rule.** Leaving is always quicker than arriving — the mobile
+drawer enters at 280ms and exits at 160ms, every cross-fade exits at ~140ms. A
+panel on its way out is already the wrong answer to what the visitor just
+asked for, and waiting for it to finish reads as latency.
+
+**The Transition-Is-A-List Rule.** The control transition contract is an
+explicit property list held in `--transition-control`, never `transition: all`.
+`all` transitions the focus outline, so the ring fades in 200ms after the key
+press and reads as lag, and it fights any transform Motion is driving on the
+same element. `transition` is a shorthand, so any class adding transform easing
+(`.press`) must restate the contract rather than replace it.
+
+**The Reduced-Motion-Keeps-Feedback Rule.** `prefers-reduced-motion` removes
+travel, not confirmation. Under it: auto-advancing carousels stop advancing
+entirely (the plate holds and the dots are how you read the rest), entrances
+lose their `y` offset but keep their fade, the hover rule fades in place
+instead of drawing, smooth scrolling becomes instant, and the drawn check
+appears complete. The 1px press and every colour change survive — a control
+that does not visibly answer a press is broken, not calm. In React this is
+`useReducedMotion()`; in CSS it is a `reduce` block, and any new decorative
+loop stays gated inside the existing `no-preference` block.
+
+**The Never-A-False-Affordance Rule.** Only things that do something get a
+hover state. `Tag`, `MetaLabel`, skill cards, and the decorative marks stay
+inert. Where a label should visibly belong to something interactive — the
+brass role tag on a project card — it warms from its *card's* `group-hover`,
+never from a hover of its own.
+
+**The Focus-Over-Media Rule.** A control sitting on a photograph cannot use the
+accent focus ring: it lands on whatever colour that pixel happens to be. The
+plate's arrows and dots carry `.focus-on-media` instead — a white outline
+inside a `rgb(0 0 0 / 0.5)` halo, legible over any image in either theme.
+Those two values, like the existing `bg-black/45` arrow scrim, are photographic
+legibility, not palette; they are the only literals in the system outside the
+token set, and no new one is added without the same justification. The halo is
+a focus indicator, not depth, so it does not breach The Flat-By-Default Rule.
+
+**The Off-Camera-Is-Inert Rule.** The three sections you are not in are still
+mounted, parked thousands of pixels off-camera. They carry `inert`, not just
+`aria-hidden`: `aria-hidden` silences a screen reader but leaves every link,
+field, and card in the tab order, so tabbing out of the navbar walks the focus
+ring off the edge of the world — visible nowhere, and dragging the section's
+own scroller around as it goes.
+
 ## Components
 
 ### Primitives (`src/components/ui/`)
@@ -154,12 +239,18 @@ Three shared primitives own the system's repeated marks. Compose these rather th
 
 - **`MetaLabel`** — the annotation register: mono, uppercase, tracked, `text-ink-muted`. Sizes `xs` (10px / `0.22em`, the default field label) and `sm` (12px / `0.2em`, standalone captions); `size="custom"` drops the built-in size and tracking so a caller can scale it (the coverflow card sizes everything against `--fit`, and date rails tighten to `0.12em`). Renders a `span` unless given `as`.
 - **`SectionHeading`** — the chapter head: display-serif title, optional standfirst, closed by a full-width hairline rule. Sizes `md` and `lg`.
+- **`CarouselDots`** — the position marker shared by every carousel (focus
+  areas, visitor notes, a project's image plate): a 6px dot in a ~26px hit
+  target, `tone="ink"` on the page and `tone="media"` over a photograph. It is
+  a group of buttons with `aria-current`, deliberately **not** a
+  `role="tablist"` — there are no tab panels here, and promising a screen
+  reader tabs then giving it none describes the control wrongly.
 - **`Tag`** — `variant="badge"` is a specimen label (pill, uppercase: role badges, academic honors); `variant="stack"` is a literal token that keeps its own casing (`rounded-md`: languages, libraries). `tone="brass"` marks cataloguing, `tone="default"` is neutral. `size="custom"` drops padding/size for `--fit` scaling.
 
 ### Buttons
 - **Shape:** full pill (`rounded-full`).
 - **Primary:** `bg-accent text-accent-ink`, `px-6 py-2.5`, `font-semibold`; used for form submits (Send message, Post).
-- **Hover / Focus:** background shifts to `accent-hover`; global `:focus-visible` draws a 2px accent outline with 2px offset (set once on `:root`, not per-component).
+- **Hover / Focus / Press:** background shifts to `accent-hover`; global `:focus-visible` draws a 2px accent outline with 2px offset (set once on `:root`, not per-component); `.press` adds the 1px press offset. A submitting button carries `aria-busy` and `cursor-wait` alongside its `disabled:opacity-60` — see Motion & Interaction States.
 - **Ghost text button:** underline-on-hover, `text-ink-muted`, mono uppercase tracking — used for "Send another message."
 
 ### Chips / Badges
@@ -184,19 +275,28 @@ Not chips. A ruled ledger: each channel is a full-width row (`border-b border-bo
 
 ### Inputs / Fields
 - **Style:** `border border-border`, transparent background, `rounded-lg`, `min-h-11`.
-- **Focus:** border shifts to `accent`, `focus:ring-2 focus:ring-accent/20`.
+- **Hover:** border shifts to `border-strong`, so a field reads as writable before it is focused.
+- **Focus:** border shifts to `accent`, `focus:ring-2 focus:ring-accent/20`. Fields are the one documented exception to the global focus outline — they suppress it (`outline: none` on `input`/`textarea`/`select`), because the border-plus-ring treatment already *is* the indicator and the outline on top of it draws a third concentric ring around one input.
+- **Caret and placeholder:** `caret-color` is `accent` and `::placeholder` is `ink-muted`, both set globally — browser surfaces that otherwise ship belonging to no design system.
 - **Error:** `text-danger` message below the field, not an inline border-color error state.
 
 ### Navigation
-- **Style:** sticky header, `border-b border-border`, solid `bg-bg/95` in light and `bg-bg/75` + `backdrop-blur-md` only in dark (light stays paper-opaque; dark reads as glass — see The No-Blur-On-A-Moving-Backdrop Rule for why blur is scoped this deliberately). Desktop links are plain `text-ink-muted`, hover to `text-ink`; the active link is `text-accent font-semibold` with a `layoutId`-animated 1px accent underline. Mobile: a full-screen `bg-bg/98` drawer (dark: `bg-bg/85` + blur) with `font-display font-bold text-3xl` links stacked with hairline dividers, active link in accent.
-- **Theme toggle:** a pill track (`border-border bg-surface`) with a solid `bg-accent` knob carrying a drawn sun/moon SVG glyph (no emoji) that slides via Motion `layout`.
-- **Scroll chaining:** wheeling past a section's bottom (or past its top, going up) navigates to the next (or previous) section in nav order — Home ↔ About ↔ Projects ↔ Connect, clamped at both ends, never wrapping. `useScrollChainNavigation` (`src/hooks/`) owns this: it requires an accumulated overscroll past the boundary (one deliberate mouse-wheel click, or a sustained trackpad push) before it fires, and locks out re-triggering for the length of the camera pan, so one gesture can't skip two sections. It always defers to a nested scrollable region that still has room to move (Connect's comment feed, any future inner panel) — a nested scroller never gets hijacked mid-scroll.
-- **Horizontal-hijack carousels:** both the Projects coverflow and About's Skills row redirect a vertical wheel gesture into horizontal movement while the pointer is anywhere over their section — vertical wheel has nothing else to do there. The coverflow (no CSS snap, its own fling physics) nudges `scrollLeft` continuously and claims the gesture unconditionally (`stopPropagation`, so it never also triggers scroll-chain navigation mid-drag). The Skills row *is* `snap-x snap-mandatory`, and a mandatory-snap container fights small incremental `scrollLeft` nudges — the browser pulls straight back to the nearest snap point, so a per-tick nudge there visually does nothing. `useWheelSnapScroll` (`src/hooks/`) instead pages it one card at a time via `scrollTo(card.offsetLeft)`, gated by the same accumulate-then-fire cadence as scroll-chain navigation, and releases the event untouched at either end — so wheeling past the last card hands off cleanly to scroll-chain navigation. **The mechanism a horizontal carousel needs depends on whether it uses CSS scroll-snap — check that before reusing either hook.**
+- **Style:** sticky header, `border-b border-border`, solid `bg-bg/95` in light and `bg-bg/75` + `backdrop-blur-md` only in dark (light stays paper-opaque; dark reads as glass — see The No-Blur-On-A-Moving-Backdrop Rule for why blur is scoped this deliberately). Desktop links are plain `text-ink-muted`, hover to `text-ink` and draw a `.rule-draw` hairline in from the left; the active link is `text-accent font-semibold` with `aria-current="page"` and a `layoutId`-animated 1px accent underline — the same mark, inked, travelling between links rather than being redrawn on each. Mobile: a full-screen `bg-bg/98` drawer (dark: `bg-bg/85` + blur) with `font-display font-bold text-3xl` links stacked with hairline dividers, active link in accent.
+- **Theme toggle:** a pill track (`border-border bg-surface`) with a solid `bg-accent` knob carrying a drawn sun/moon SVG glyph (no emoji) that slides via Motion `layout`. The two glyphs cross-fade and turn ~50° rather than swapping on one frame mid-slide, and the track's border goes `accent/60` on press. Both toggles (navbar and Home) answer a press the same way.
+- **Scroll flow** (`src/scroll/`): one wheel listener per active section resolves every tick in a fixed order — (1) a registered horizontal region that has arrived on screen with room to move, (2) a nested vertical scroller with room (Connect's comment feed), (3) the section's own vertical scroll, (4) navigate to the neighbouring section. Chaining runs Home ↔ About ↔ Projects ↔ Connect, clamped at both ends, never wrapping; it needs accumulated overscroll past the boundary before firing and locks out for the length of the camera pan, so one gesture can't skip two sections.
 
-  `useWheelSnapScroll` takes two refs, not one, and the split matters: `hitAreaRef` (the whole Skills `<section>`) is where the listener attaches, `scrollRef` (the row itself, a few hundred px tall) is what actually scrolls. A `snap-x` row is usually far shorter than the section around it — a cursor resting anywhere natural while the page scrolls has no reason to be hovering that exact narrow band, and listening only on the row misses most real gestures. But the hit area can't be the trigger condition either: it additionally checks `scrollRef`'s own `getBoundingClientRect()` and only claims the event once the row has *some* on-screen presence, so scrolling still behaves normally while only the section heading is in view and the row is still below the viewport — the row being visible is the real condition, cursor position over the wider hit area is just how the listener reaches it. See The Horizontal-Hijack Rule.
+  Carousels **do not listen for wheel events themselves.** They register a `HorizontalConsumer` (`canConsume` / `consume`) via `useHorizontalScrollConsumer` and wait to be asked. This is the point of the subsystem: several listeners at different DOM depths each grabbing wheel events and calling `stopPropagation` means the winner depends on where the cursor happens to hover — a carousel pages only when hovered exactly, and section navigation fires from the same tick meant to scroll a row. One decision point, in a fixed order, removes that race and makes behaviour depend on where the *reader* is in the page.
+
+- **The L motion (About → Skills → Projects):** scrolling down travels vertically until the whole Skills **section** is settled in the viewport — heading, row and trailing padding, not just the row — at which point the row takes the wheel and travels across one card at a time, and once it reaches its scroll end the wheel returns to the page and carries on to Projects. Down, then across, then on. Paging is deliberately stepped (roughly one wheel click per card, with the smooth scroll allowed to settle between cards) so the travel reads rather than flings. Entering the section resets the row to its first card, so the L plays the same way on every visit.
+
+- **Two carousels, two mechanisms.** The Projects coverflow (no CSS snap, its own fling physics) eases `scrollLeft` toward an accumulating target. The Skills row *is* `snap-x snap-mandatory`, and a mandatory-snap container fights small incremental `scrollLeft` nudges — the browser pulls straight back to the nearest snap point, so per-tick nudges visually do nothing; `useSnapCarousel` pages it via `scrollTo(card.offsetLeft)` instead, a position the snap machinery already agrees with. **Which mechanism a horizontal region needs depends on whether it uses CSS scroll-snap — check that first.**
 
 ### Named Rules
-**The Horizontal-Hijack Rule.** A component that redirects vertical wheel into its own horizontal scroll must call `stopPropagation`, at minimum while it still has scroll room — otherwise the same wheel tick also reaches `useScrollChainNavigation` on the ancestor `Section` and fires a second, unrelated behavior (section navigation) from one gesture. Releasing the event at the scroll boundary (letting it bubble, uninterrupted) is what hands off to scroll-chain navigation on purpose — that's a choice per carousel, not accidental.
+**The Release-On-Boundary Rule.** A horizontal consumer must decide it is finished from the container's *real* scroll boundary (`scrollLeft` against `scrollWidth - clientWidth`), never from card indices. The last card's `offsetLeft` is almost always greater than `maxScroll` — a row cannot scroll far enough to put its final card at the left edge — so `scrollTo` clamps, and at that clamped position the *nearest* card is the second to last. Index arithmetic therefore keeps proposing a target the row can never reach, holds the wheel forever, and makes the next section unreachable by scrolling. This has already been shipped as a bug once.
+
+**The Arrived-Not-Glimpsed Rule.** A horizontal region claims the wheel only once its **whole section** is within the viewport — not when its first pixel appears, and not merely when the row itself fits. Reacting to a glimpse stalls the descent halfway and destroys the L; gating on the bare row fires while the heading and lower padding are still cut off, which reads as the page giving up on the descent early. `canConsume` receives the section's own box for this measurement, and `useSnapCarousel` takes a separate `gateRef` so the element that must be visible can differ from the element that scrolls.
+
+**The Fresh-On-Entry Rule.** Entering a section resets it — vertical scroll *and* every registered horizontal region. A carousel left parked at its far end reports "nothing to do" on the next visit, so the reader scrolls straight through into the next section and the interaction silently disappears the second time. Resetting only the vertical scroll is the easy half of this bug.
 
 ### Decorative marks (`src/components/decor/`)
 
@@ -218,19 +318,40 @@ These are architecturally different from the section-scoped marks above: they ar
 
 They are mutually exclusive and theme-gated by their only piece of theme logic: `NightSky` is `hidden dark:block`, `DayCurrents` is `dark:hidden`. Exactly one is displayed at any time, which is what lets the sections stop painting a ground of their own.
 
-- **`NightSky` (dark).** Two large, near-invisible (`opacity-[0.07]`–`opacity-[0.09]`) `Ring`/`OrbitalArc` instances for celestial depth, plus a sparse field of ~80 `<circle>` points across three size/brightness tiers (55 dim and tiny, 20 mid, 8 near-and-brighter — a real sky has far more dim points than bright ones). Positions come from a seeded `mulberry32` PRNG at module load, never `Math.random()` in a render path.
-- **`DayCurrents` (light).** Three hand-placed `WindCurrent` strokes — moving air over paper, the counterpart to the star — on `accent` and `ink-faint` at 0.10–0.14 opacity. Two are dropped below `sm`. Placement is authored per stroke, never looped (see The Sparse-and-Asymmetric Rule).
+- **`NightSky` (dark).** Two large, faint (`opacity-[0.14]`–`opacity-[0.17]`) `Ring`/`OrbitalArc` instances for celestial depth, plus a sparse field of ~117 `<circle>` points across three size/brightness tiers (72 dim and tiny, 30 mid, 15 near-and-brighter — a real sky has far more dim points than bright ones). Positions come from a seeded `mulberry32` PRNG at module load, never `Math.random()` in a render path. The nearest tier draws in `ink-muted` and carries a second, much fainter disc at ~3.8× its radius: a bloom painted as *fill*, never a `filter` — a drop-shadow on an element that twinkles forever would repaint every frame of the site's life.
+- **`DayCurrents` (light).** Four hand-placed `WindCurrent` strokes — moving air over paper, the counterpart to the star — on `accent`, `brass` and `ink-faint` at 0.20–0.30 opacity. One is unconditional, two more arrive at `sm`, and the brass one at `lg`, so a phone still carries a single current. Placement is authored per stroke, never looped (see The Sparse-and-Asymmetric Rule).
+
+**Both layers were raised twice from where they first shipped** (stars 0.14–0.75 on three dimmer, sparser tiers; currents 0.10–0.14 on three thinner strokes). At those values the night sky read as a near-black rectangle and light mode as blank paper on any screen that was not in a dark room — the "two lights, one world" thesis was invisible in both, and the supersonic burst below had nothing to work with. They remain far under the content: the glass panels that sit on the sky carry a 16px backdrop blur, and a hairline current behind #211b14 ink on ivory does not move its 12.9:1 contrast.
 
 The background layers hold texture only. **Representational artwork never goes in them** — the hand-drawn clouds and flourishes are placed marks inside sections instead (below), because a drawing stretched across the whole viewport stops being a drawing and becomes wallpaper.
 
 For the ground layers to be visible, the sections stopped painting their own: `Section.tsx`'s content wrapper and `About.tsx`'s root carry no `bg-*` class at all, in either theme. This is also *why* the dark-mode glass panels (`bg-surface` + backdrop-blur, from Elevation & Depth above) have real atmosphere to show through rather than a flat navy fill.
 
-**Motion.** Both layers animate, both are gated inside one `@media (prefers-reduced-motion: no-preference)` block in `src/index.css`, and both are property-choices made for compositor cost rather than for looks:
+**Motion.** Both layers animate, all of it is gated inside one `@media (prefers-reduced-motion: no-preference)` block in `src/index.css`, and every property is chosen for compositor cost rather than for looks:
 
 - Stars use `star-twinkle` (opacity 1 ↔ 0.5), each with its own `--twinkle-delay`/`--twinkle-duration`.
 - Currents use `wind-drift`, a `translate3d` of ~1% over 46–70s, each with its own `--drift-x`/`--drift-y`/`--drift-duration`/`--drift-delay` set through Tailwind arbitrary-property utilities. Transform is the one property that animates on the compositor *without* repainting, which matters because these strokes are viewport-sized — animating `stroke-dashoffset` here would repaint a full-viewport path every frame. Negative delays start each current mid-cycle so nothing sweeps in lockstep.
 
 A visitor who has asked for reduced motion gets both layers fully static, at each element's resting state — not a slowed-down animation. The large depth shapes in `NightSky` never animate in either preference.
+
+### The supersonic burst
+
+The site's one moment of spectacle, and the only thing on it that reacts to navigation. Travelling between two sections is the portfolio's signature gesture; for ~78% of the pan the atmosphere acknowledges that the camera just crossed the canvas, and then it is gone. It is deliberately shorter than the pan itself, so the air clears before the destination arrives.
+
+**It follows the actual journey.** `App.tsx` derives a `Travel` (`src/components/decor/travel.ts`) from the two sections' own canvas cells — an id, an angle in screen axes, and a unit vector — and hands it to both atmospheres as a prop. The sky is *told* where the camera went; it does not work it out, and it holds no opinion about section names or coordinates. Home → Projects streaks flat, Home → About streaks vertically, Home → Connect streaks along the diagonal it actually travels.
+
+- **Night: light trails.** The nearer half of the same seeded star field (every star at `r ≥ 1`, ~45 of 117) becomes a gradient-cored streak in `ink-muted`. Motion orchestrates the field as a whole — one transform surging 132px × `journeyScale` *against* the camera, because the sky is what the camera moves over — and a CSS keyframe stretches and fades each trail on its own delay so they never fire in lockstep. Under the burst the star chart itself dips to 0.32 in 160ms and returns over 450ms, so the streaks carry the frame rather than competing with the points they came from.
+- **Day: a gust.** Five `WindCurrent` strokes — the same authored vocabulary as the resting air, not a new mark — inside a frame rotated once to the travel vector, so each stroke only ever travels a local `-x` and no stroke needs to know which way the journey went. The resting currents and the sections' cloud artwork are deliberately untouched: they are the scenery the gust passes *through*. Moving everything at once reads as the page lurching, not as air being displaced.
+
+### Named Rules
+
+**The Burst-Is-Borrowed Rule.** The supersonic layer only ever borrows marks the atmosphere already owns — a subset of the existing stars, the existing `WindCurrent` curves — and it exists only while a journey is in flight. It introduces no shape, no hue, and no element that outlives the 640ms. Anything that would need to persist belongs in the resting composition or nowhere.
+
+**The Against-The-Camera Rule.** The atmosphere is the thing the camera moves over, so it streaks *opposite* the travel vector. Both layers take the vector's sign from the same `Travel`; neither hard-codes a direction per section pair, and adding a fifth section requires no change to either sky.
+
+**The Promote-Only-In-Flight Rule.** `will-change: transform` on the panned canvas lives only for the length of a pan, not permanently. A composited layer costs GPU memory proportional to its extent, and the extent is now several viewports across in both axes — a permanent promotion is the one thing that would have made a longer `SECTION_SPAN` expensive on a low-end device. It is applied in the same commit that starts the animation, since both come from the same navigation, so the layer is promoted on the first frame rather than part-way through it.
+
+**The Burst-Costs-Nothing-At-Rest Rule.** Every element of the burst is mounted only for the length of one journey and only when the visitor has not asked for reduced motion, which is what makes `will-change` legitimate on it — it is scoped to elements that exist exclusively while they animate. Nothing in the burst touches layout, filter, or backdrop-filter; it is transform and opacity on composited boxes, which is why the trails are positioned HTML rather than SVG geometry. At rest the cost of the whole feature is zero nodes.
 
 ### Artwork marks (where the drawings live)
 
@@ -277,6 +398,8 @@ The optimization is not cosmetic: the originals carry six decimal places per coo
 - **Do** mount any persistent, cross-section background effect (like `NightSky` or `DayCurrents`) once at the App root, outside `SpatialCanvas`'s panned layer — see The One-Sky Rule.
 - **Do** keep a section's own background transparent. The atmosphere layers own the ground color now; a `bg-bg` added back onto a section, a section root, or a full-bleed region will silently paint over the whole environment.
 - **Do** gate any new decorative motion behind `@media (prefers-reduced-motion: no-preference)`, and generate any pseudo-random decorative layout (star positions and similar) with a seeded PRNG at module scope, never `Math.random()` in a render path.
+- **Do** give every new control the full set — hover, focus-visible, active, and disabled — from the vocabulary in Motion & Interaction States, rather than inventing a one-off response for it.
+- **Do** stop an auto-advancing carousel while it is hovered *or* holds keyboard focus, and stop it entirely under `prefers-reduced-motion`.
 
 ### Don't:
 - **Don't** add `box-shadow` to cards, buttons, or panels — the system is flat-by-default.
@@ -285,6 +408,8 @@ The optimization is not cosmetic: the originals carry six decimal places per coo
 - **Don't** introduce a third accent color; the system deliberately has exactly two (`accent` for interaction, `brass` for labeling).
 - **Don't** nest a bordered card inside a bordered panel. When a group needs separation inside a panel, use hairline-divided rows (the contact directory) rather than a second box.
 - **Don't** repeat one vertical spacing value down a section; see The Breathe-Above Rule.
-- **Don't** animate the four section-scoped decorative marks (`OrbitalArc`, `Ring`, `TrajectoryLine`, `MarkerTick`); they stay static illustration. `NightSky`'s star twinkle is the one deliberate exception, and it is a background-atmosphere concern, not a precedent for animating marks inside a section's own composition.
-- **Don't** grow either atmosphere into a full particle system, ribbon field, or scroll/pointer-reactive effect. Both are deliberately a fixed composition plus one cheap, compositor-only ambient animation; anything reactive is a later, separate decision.
+- **Don't** animate the four section-scoped decorative marks (`OrbitalArc`, `Ring`, `TrajectoryLine`, `MarkerTick`); they stay static illustration. The two deliberate exceptions — `NightSky`'s star twinkle and the supersonic burst — are both background-atmosphere concerns, and neither is a precedent for animating marks inside a section's own composition.
+- **Don't** grow either atmosphere into a full particle system, ribbon field, or scroll- or pointer-reactive effect. The line is drawn precisely: each atmosphere is a fixed composition, one cheap compositor-only ambient animation, and one transient burst on a *discrete* navigation event. Anything that reacts continuously — to the wheel, the pointer, a scroll position — would run every frame the visitor is reading, which is a different thing entirely and a separate decision.
 - **Don't** animate `stroke-dashoffset`, `filter`, or `backdrop-filter` on a viewport-sized decorative element. Ambient background motion is limited to `transform` and `opacity`, the two properties that animate without repainting.
+- **Don't** write `transition: all`, or give a control a scale, glow, or bounce on hover. Hover shifts material — a hairline, a colour, a wash — and never size.
+- **Don't** put a hover state on something that isn't interactive, or a press offset on an element that is also a drag surface (the coverflow card is both a button and the track's drag handle; its acknowledgement is the glide to centre).

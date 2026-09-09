@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
-import portraitDark from "../../assets/Home/PortraitDark.png";
+import portraitDark from "../../assets/Home/PortraitDark.webp";
+import portraitLight from "../../assets/Home/PortraitLight.webp";
 import { useComments } from "../../hooks/useComments";
 import VisitorNotesCarousel from "../VisitorNotesCarousel";
 import MetaLabel from "../ui/MetaLabel";
@@ -8,11 +9,6 @@ import lineHalo from "../../assets/line-halo.svg";
 import lineartFour from "../../assets/lineart-4.svg";
 import starsFour from "../../assets/stars-4.svg";
 import cloudTwo from "../../assets/cloud-2.svg";
-
-const portraitLight = new URL(
-  "../../assets/Home/PortraitLight.JPG",
-  import.meta.url,
-).href;
 
 interface HomeProps {
   darkMode: boolean;
@@ -26,7 +22,7 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
 
   return (
     <div>
-      <div className="relative mx-auto grid min-h-full w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-16 lg:px-8">
+      <div className="relative mx-auto grid min-h-full w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-10 lg:px-8 xl:gap-16">
         {/* Theme-paired flourish: the lineart curl is the day mark, the star
             cluster the night one, sharing a slot so either theme shows the
             same number of marks. */}
@@ -64,10 +60,10 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
           </p>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-6 lg:items-end lg:border-l lg:border-border lg:pl-16">
+        <div className="flex flex-col items-center justify-center gap-6 lg:items-end lg:border-l lg:border-border lg:pl-10 xl:pl-16">
           {/* Stage is sized beyond the portrait itself so the halo has room
               to clear the frame's edge rather than hugging its border. */}
-          <div className="relative flex h-64 w-64 items-center justify-center sm:h-80 sm:w-80 lg:h-96 lg:w-96">
+          <div className="relative flex h-64 w-64 items-center justify-center sm:h-80 sm:w-80 lg:h-[21rem] lg:w-[21rem] xl:h-96 xl:w-96">
             <DecorField className="hidden sm:block">
               <MaskedArt
                 src={lineHalo}
@@ -79,7 +75,7 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
                 key={portraitSource}
                 src={portraitSource}
                 alt="Portrait of Jasper D. Sergio"
-                className="h-64 w-64 rounded-lg object-cover sm:h-72 sm:w-72"
+                className="h-56 w-56 rounded-lg object-cover sm:h-72 sm:w-72"
               />
             </div>
           </div>
@@ -99,7 +95,7 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
               onClick={onToggleDarkMode}
               aria-label="Toggle dark mode for aesthetical changes"
               aria-pressed={darkMode}
-              className={`flex h-7 w-12 items-center rounded-full border border-border bg-surface p-1 transition hover:border-border-strong ${
+              className={`flex h-7 w-12 items-center rounded-full border border-border bg-surface p-1 hover:border-border-strong active:border-accent/60 ${
                 darkMode ? "justify-end" : "justify-start"
               }`}
             >

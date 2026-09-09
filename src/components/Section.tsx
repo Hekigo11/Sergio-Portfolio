@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useRef, type ReactNode } from "react";
-import { useScrollChainNavigation } from "../hooks/useScrollChainNavigation";
+import { useScrollFlowRegistry } from "../scroll/scrollFlowContext";
+import { useSectionScrollFlow } from "../scroll/useSectionScrollFlow";
 
 interface SectionProps {
   id: string;
@@ -49,14 +50,21 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
 ) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (visible) {
-      scrollContainerRef.current?.scrollTo({ top: 0 });
-    }
-  }, [visible]);
+  const registry = useScrollFlowRegistry();
 
-  useScrollChainNavigation({
+  // Entering a section starts it over — vertically, and for any horizontal
+  // region inside it. Resetting only the vertical scroll would leave a
+  // carousel parked at its far end, where it reports nothing to do and the
+  // reader scrolls straight through into the next section.
+  useEffect(() => {
+    if (!visible) return;
+    scrollContainerRef.current?.scrollTo({ top: 0 });
+    registry?.resetConsumers(id);
+  }, [visible, id, registry]);
+
+  useSectionScrollFlow({
     containerRef: scrollContainerRef,
+    sectionId: id,
     enabled: visible && Boolean(sectionOrder && onNavigate),
     onNext: () => {
       if (!sectionOrder || !onNavigate) return;
@@ -75,6 +83,13 @@ export const Section = forwardRef<HTMLElement, SectionProps>(function Section(
       ref={ref}
       id={id}
       aria-hidden={!visible}
+      // The other three sections are still mounted, parked thousands of pixels
+      // off-camera. Without `inert` their links, fields, and cards stay in the
+      // tab order, so tabbing out of the navbar walks the focus ring off the
+      // edge of the world — visible nowhere, and pulling the section's own
+      // scroller around as it goes. `aria-hidden` alone silences a screen
+      // reader without taking anything out of the tab order.
+      inert={!visible}
       className={`absolute ${className}`}
       style={{
         left: position.x,

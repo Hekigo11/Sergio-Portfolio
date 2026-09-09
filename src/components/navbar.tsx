@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 
 interface StickyNavbarProps {
@@ -19,7 +19,7 @@ const EASING = [0.22, 1, 0.36, 1] as const;
 
 function MenuGlyph({ open }: { open: boolean }) {
   const bar =
-    "absolute left-0 h-[1.75px] w-full rounded-full bg-current transition-all duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]";
+    "absolute left-0 h-[1.75px] w-full rounded-full bg-current transition-[top,opacity,transform] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]";
   return (
     <span className="relative block h-4 w-5 shrink-0" aria-hidden="true">
       <span
@@ -76,22 +76,49 @@ function ThemeToggle({
   darkMode: boolean;
   onToggleDarkMode: () => void;
 }) {
+  const shouldReduceMotion = useReducedMotion();
+  // The knob slides on a spring; the glyph inside it used to swap on the same
+  // frame, which read as a hard cut in the middle of a smooth travel. It
+  // cross-fades and turns a few degrees instead — the lamp changing, not a
+  // different lamp. Reduced motion keeps the fade and drops the turn.
+  const glyph = (visible: boolean, turn: number) => ({
+    opacity: visible ? 1 : 0,
+    rotate: shouldReduceMotion ? 0 : visible ? 0 : turn,
+  });
+
   return (
     <button
       type="button"
       onClick={onToggleDarkMode}
       aria-label="Toggle dark mode"
       aria-pressed={darkMode}
-      className={`flex h-8 w-14 items-center rounded-full border border-border bg-surface p-1 transition hover:border-border-strong ${
+      className={`flex h-8 w-14 items-center rounded-full border border-border bg-surface p-1 hover:border-border-strong active:border-accent/60 ${
         darkMode ? "justify-end" : "justify-start"
       }`}
     >
       <motion.span
         layout
         transition={{ type: "spring", visualDuration: 0.2, bounce: 0.2 }}
-        className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-accent-ink"
+        className="relative flex h-6 w-6 items-center justify-center rounded-full bg-accent text-accent-ink"
       >
-        {darkMode ? <MoonIcon /> : <SunIcon />}
+        <motion.span
+          aria-hidden="true"
+          initial={false}
+          animate={glyph(!darkMode, -50)}
+          transition={{ duration: 0.22, ease: EASING }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <SunIcon />
+        </motion.span>
+        <motion.span
+          aria-hidden="true"
+          initial={false}
+          animate={glyph(darkMode, 50)}
+          transition={{ duration: 0.22, ease: EASING }}
+          className="absolute inset-0 flex items-center justify-center"
+        >
+          <MoonIcon />
+        </motion.span>
       </motion.span>
       <span className="sr-only">
         {darkMode ? "Switch to light mode" : "Switch to dark mode"}
@@ -107,6 +134,7 @@ export function StickyNavbar({
   activeSection,
 }: StickyNavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   // The panel sits above everything else in the DOM; Escape is the keyboard
   // equivalent of tapping the backdrop.
@@ -134,7 +162,7 @@ export function StickyNavbar({
     <>
       <header className="sticky top-0 z-50 border-b border-border bg-bg/95 dark:bg-bg/75 dark:backdrop-blur-md">
         <nav
-          className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
+          className="mx-auto flex min-h-16 w-full max-w-6xl items-center justify-between px-6 py-3 sm:px-10 lg:px-8"
           aria-label="Main navigation"
         >
           <a
@@ -143,9 +171,13 @@ export function StickyNavbar({
               event.preventDefault();
               handleNavigate("home");
             }}
-            className="font-display text-lg font-bold tracking-tight text-ink"
+            className="group press relative py-1.5 font-display text-lg font-bold tracking-tight text-ink"
           >
             Sergio&apos;s Portfolio
+            <span
+              aria-hidden="true"
+              className="rule-draw absolute inset-x-0 -bottom-px h-px bg-ink-muted"
+            />
           </a>
 
           <div className="flex items-center gap-3 sm:gap-6">
@@ -160,13 +192,21 @@ export function StickyNavbar({
                       event.preventDefault();
                       handleNavigate(item.id);
                     }}
-                    className={`relative py-1.5 transition-colors ${
-                      active
-                        ? "font-semibold text-accent"
-                        : "hover:text-ink"
+                    aria-current={active ? "page" : undefined}
+                    className={`group press relative py-1.5 ${
+                      active ? "font-semibold text-accent" : "hover:text-ink"
                     }`}
                   >
                     {item.label}
+                    {/* Hover draws the same rule in pencil; the section you are
+                        actually in has it inked, and that inked rule travels
+                        between links rather than being redrawn on each one. */}
+                    {!active && (
+                      <span
+                        aria-hidden="true"
+                        className="rule-draw absolute inset-x-0 -bottom-px h-px bg-ink-muted"
+                      />
+                    )}
                     {active && (
                       <motion.span
                         layoutId="nav-active-underline"
@@ -189,7 +229,7 @@ export function StickyNavbar({
               aria-label="Toggle navigation menu"
               aria-expanded={menuOpen}
               aria-controls="mobile-nav-panel"
-              className="flex h-11 w-11 items-center justify-center rounded-full text-ink md:hidden"
+              className="press flex h-11 w-11 items-center justify-center rounded-full text-ink hover:bg-surface active:bg-surface active:text-accent md:hidden"
             >
               <MenuGlyph open={menuOpen} />
             </button>
@@ -205,18 +245,37 @@ export function StickyNavbar({
         {menuOpen && (
           <motion.div
             id="mobile-nav-panel"
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: EASING }}
+            // Leaving is faster than arriving: a panel on its way out is
+            // already the wrong answer to what the visitor just asked for.
+            exit={{
+              opacity: 0,
+              y: shouldReduceMotion ? 0 : -8,
+              transition: { duration: 0.16, ease: EASING },
+            }}
+            transition={{ duration: 0.28, ease: EASING }}
             className="fixed inset-x-0 top-16 bottom-0 z-40 flex flex-col bg-bg/98 dark:bg-bg/85 dark:backdrop-blur-md md:hidden"
           >
             <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-between px-6 py-8 sm:px-10">
               <ul className="flex flex-col">
-                {navItems.map((item) => {
+                {navItems.map((item, index) => {
                   const active = item.id === activeSection;
                   return (
-                    <li key={item.id} className="border-b border-border">
+                    <motion.li
+                      key={item.id}
+                      // The drawer's links arrive as a list, so they arrive in
+                      // sequence. The stagger spans 120ms across all four —
+                      // short enough to read as one gesture, never as a wait.
+                      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: 0.06 + index * 0.04,
+                        ease: EASING,
+                      }}
+                      className="border-b border-border"
+                    >
                       <a
                         href={`#${item.id}`}
                         onClick={(event) => {
@@ -224,13 +283,15 @@ export function StickyNavbar({
                           handleNavigate(item.id);
                         }}
                         aria-current={active ? "page" : undefined}
-                        className={`flex items-center py-5 font-display text-3xl font-bold tracking-tight ${
-                          active ? "text-accent" : "text-ink"
+                        className={`press flex items-center py-5 font-display text-3xl font-bold tracking-tight ${
+                          active
+                            ? "text-accent"
+                            : "text-ink hover:text-accent active:text-accent"
                         }`}
                       >
                         {item.label}
                       </a>
-                    </li>
+                    </motion.li>
                   );
                 })}
               </ul>
