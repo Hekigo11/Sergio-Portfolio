@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { ensureSchema, sql } from "./_lib/db";
-import { hashIp, isCommentRateLimited, looksLikeSpam } from "./_lib/spam";
+import { ensureSchema, sql } from "./_lib/db.js";
+import { hashIp, isCommentRateLimited, looksLikeSpam } from "./_lib/spam.js";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;

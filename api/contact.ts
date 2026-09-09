@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { ensureSchema, sql } from "./_lib/db";
-import { sendContactAutoReply, sendContactNotification } from "./_lib/email";
-import { hashIp, isContactRateLimited, looksLikeSpam } from "./_lib/spam";
+import { ensureSchema, sql } from "./_lib/db.js";
+import { sendContactAutoReply, sendContactNotification } from "./_lib/email.js";
+import { hashIp, isContactRateLimited, looksLikeSpam } from "./_lib/spam.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

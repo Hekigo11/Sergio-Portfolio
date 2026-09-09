@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type { VercelRequest } from "@vercel/node";
-import { sql } from "./db";
+import { sql } from "./db.js";
 
 // Comments are a live public feed — short bursts of quick replies are normal
 // traffic, so the window stays tight. Contact is a one-off formal action;
