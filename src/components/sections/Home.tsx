@@ -1,9 +1,9 @@
-import { motion } from "motion/react";
 import portraitDark from "../../assets/Home/PortraitDark.webp";
 import portraitLight from "../../assets/Home/PortraitLight.webp";
 import { useComments } from "../../hooks/useComments";
 import VisitorNotesCarousel from "../VisitorNotesCarousel";
 import MetaLabel from "../ui/MetaLabel";
+import ThemeToggle from "../ui/ThemeToggle";
 import { DecorField, MaskedArt } from "../decor";
 import lineHalo from "../../assets/line-halo.svg";
 import lineartFour from "../../assets/lineart-4.svg";
@@ -79,36 +79,31 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
               />
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              className="h-4 w-4 rotate-180 text-ink-faint"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-            <button
-              type="button"
-              onClick={onToggleDarkMode}
-              aria-label="Toggle dark mode for aesthetical changes"
-              aria-pressed={darkMode}
-              className={`flex h-7 w-12 items-center rounded-full border border-border bg-surface p-1 hover:border-border-strong active:border-accent/60 ${
-                darkMode ? "justify-end" : "justify-start"
-              }`}
-            >
-              <motion.span
-                layout
-                transition={{
-                  type: "spring",
-                  visualDuration: 0.2,
-                  bounce: 0.2,
-                }}
-                className="h-5 w-5 rounded-full bg-accent"
+          {/* Caption sits at the same gap-2 that binds a MetaLabel to its
+              control everywhere else in the system (Connect's form labels) —
+              a caption is read as belonging to the one thing beneath or above
+              it, not as a third item in the row. */}
+          <div className="flex flex-col items-center gap-2 lg:items-end">
+            <div className="flex items-center gap-3">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                className="h-4 w-4 rotate-180 text-ink-faint"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+              <ThemeToggle
+                darkMode={darkMode}
+                onToggleDarkMode={onToggleDarkMode}
+                size="sm"
               />
-            </button>
+            </div>
+            <MetaLabel as="p" size="sm">
+              For a change in atmosphere
+            </MetaLabel>
           </div>
         </div>
       </div>

@@ -28,8 +28,17 @@ export function ensureSchema(): Promise<void> {
           name TEXT NOT NULL,
           email TEXT NOT NULL,
           message TEXT NOT NULL,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          ip_hash TEXT
         )
+      `;
+      // ALTER ... ADD COLUMN IF NOT EXISTS rather than folding ip_hash into the
+      // CREATE above: this runs against a database that may already have
+      // contact_submissions from before rate-limiting existed, and CREATE TABLE
+      // IF NOT EXISTS is a no-op once the table is there — it would never add
+      // the column to an already-deployed table.
+      await sql`
+        ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS ip_hash TEXT
       `;
     })();
   }

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { ensureSchema, sql } from "./_lib/db";
-import { hashIp, isRateLimited, looksLikeSpam } from "./_lib/spam";
+import { hashIp, isCommentRateLimited, looksLikeSpam } from "./_lib/spam";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const ipHash = hashIp(req);
-    if (await isRateLimited(ipHash)) {
+    if (await isCommentRateLimited(ipHash)) {
       return res
         .status(429)
         .json({ error: "You're posting too quickly — try again shortly." });
