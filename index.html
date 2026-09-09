@@ -4,14 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Two, not one — like the favicon, this only tracks the OS/browser
+         color-scheme setting, not the in-page toggle, but that's the honest
+         limit of a static <meta> tag; the site's own [data-theme] toggle has
+         no way to reach it. Browsers take the first matching media query, so
+         the unconditional light value stays first as the fallback. -->
     <meta name="theme-color" content="#f6f1e4" />
+    <meta name="theme-color" content="#0a0d18" media="(prefers-color-scheme: dark)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <title>sergio-portfolio</title>
+    <title>Jasper D. Sergio — Computer Engineer</title>
   </head>
   <body>
     <div id="root"></div>
