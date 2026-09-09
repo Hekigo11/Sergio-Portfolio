@@ -3,6 +3,7 @@ import { type FormEvent, useState } from "react";
 import { useComments } from "../../hooks/useComments";
 import { formatRelativeTime } from "../../lib/formatRelativeTime";
 import { postComment, submitContact } from "../../lib/api";
+import { relayContactNotification } from "../../lib/web3forms";
 import MetaLabel from "../ui/MetaLabel";
 import SectionHeading from "../ui/SectionHeading";
 import { DecorField, MarkerTick, MaskedArt } from "../decor";
@@ -113,11 +114,14 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
     const data = new FormData(form);
     setStatus("submitting");
     setError(null);
+    const name = String(data.get("name") ?? "");
+    const email = String(data.get("email") ?? "");
+    const message = String(data.get("message") ?? "");
     try {
       await submitContact({
-        name: String(data.get("name") ?? ""),
-        email: String(data.get("email") ?? ""),
-        message: String(data.get("message") ?? ""),
+        name,
+        email,
+        message,
         company: String(data.get("company") ?? ""),
       });
       setStatus("success");
@@ -125,6 +129,18 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Something went wrong.");
+      return;
+    }
+
+    // Fired only after the line above confirms the message is durable in
+    // Postgres — a bot caught by the honeypot or a rate-limited sender never
+    // reaches this. Best-effort from here: this is the notification, not the
+    // record. A failure is a console note for whoever's debugging, never a
+    // reason to tell the visitor their message didn't go through — it did.
+    try {
+      await relayContactNotification({ name, email, message });
+    } catch (err) {
+      console.error("Contact notification relay failed", err);
     }
   };
 

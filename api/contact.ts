@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { ensureSchema, sql } from "./_lib/db.js";
 import { hashIp, isContactRateLimited, looksLikeSpam } from "./_lib/spam.js";
-import { relayContactSubmission } from "./_lib/web3forms.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -50,16 +49,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     VALUES (${name}, ${email}, ${message}, ${ipHash})
   `;
 
-  // The submission is already durable in Postgres above regardless of what
-  // happens here — a relay failure loses a notification, never the message
-  // itself. There is deliberately no auto-reply to the visitor alongside
-  // this: see web3forms.ts for why that specific capability isn't available
-  // without a verified sending domain, on any free relay.
-  try {
-    await relayContactSubmission({ name, email, message });
-  } catch (err) {
-    console.error("Contact notification relay failed", err);
-  }
-
+  // No email relay call here. Web3Forms (src/lib/web3forms.ts) rejects a
+  // server-to-server request by design — a 403, confirmed from their own
+  // troubleshooting docs, not a misconfiguration — so the notification is
+  // sent by the browser itself, once it sees this handler return success.
+  // The message is durable in Postgres above regardless of whether that
+  // client-side call ever happens; this endpoint's job ends at the insert.
   return res.status(200).json({ ok: true });
 }
