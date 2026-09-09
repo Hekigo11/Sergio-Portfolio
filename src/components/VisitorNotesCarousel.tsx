@@ -8,6 +8,11 @@ interface VisitorNotesCarouselProps {
   comments: Comment[];
   darkMode: boolean;
   intervalMs?: number;
+  /** Extra alignment classes for the root and the animated note block — e.g.
+   * `"items-center lg:items-start"` to match a column that's centered on
+   * mobile but left-aligned from `lg` up. Appended after the base
+   * `items-center`, so a responsive override still wins at its breakpoint. */
+  className?: string;
 }
 
 const EASING = [0.22, 1, 0.36, 1] as const;
@@ -18,6 +23,7 @@ const VisitorNotesCarousel = ({
   comments,
   darkMode: _darkMode,
   intervalMs = 5000,
+  className = "",
 }: VisitorNotesCarouselProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const shouldReduceMotion = useReducedMotion();
@@ -38,7 +44,7 @@ const VisitorNotesCarousel = ({
   if (!active) return null;
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className={`flex flex-col items-center gap-6 ${className}`}>
       {/* One note replaces another: it crosses over rather than cutting, and
           the pair never overlaps mid-sentence. */}
       <AnimatePresence mode="wait" initial={false}>
@@ -48,7 +54,7 @@ const VisitorNotesCarousel = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, transition: { duration: 0.14 } }}
           transition={{ duration: 0.34, ease: EASING }}
-          className="flex flex-col items-center gap-6"
+          className={`flex flex-col items-center gap-6 ${className}`}
         >
           <p className="line-clamp-3 min-h-18 max-w-xl font-display text-xl leading-8 text-ink italic sm:text-2xl">
             “{active.message}”
