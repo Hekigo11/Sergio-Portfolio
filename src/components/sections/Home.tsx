@@ -21,7 +21,17 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
   const showVisitorNotes = !notesLoading && visitorNotes.length > 0;
 
   return (
-    <div className="relative mx-auto grid min-h-full w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:min-h-(--app-height) lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-10 lg:px-8 xl:gap-16">
+    // min-h-(--app-height), not min-h-full: this is the one section built on
+    // CSS Grid, and a percentage min-height (`100%`) needs its ancestor to
+    // carry a genuinely definite height to resolve against cleanly — a known
+    // source of ambiguous row sizing when combined with `items-center`. A
+    // grid row sized smaller than its own content, then centered, spills
+    // evenly above *and* below it — straight into whatever comes next in the
+    // scroll flow, which on mobile is NextSectionCue. Every other section
+    // uses this same fixed-length token (or no forced height at all) and
+    // never showed the overlap; this was the one place still holding a
+    // percentage.
+    <div className="relative mx-auto grid min-h-(--app-height) w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-10 lg:px-8 xl:gap-16">
       {/* Theme-paired flourish: the lineart curl is the day mark, the star
           cluster the night one, sharing a slot so either theme shows the
           same number of marks. */}
