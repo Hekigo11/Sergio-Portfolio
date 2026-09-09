@@ -21,17 +21,20 @@ const Home = ({ darkMode, onToggleDarkMode }: HomeProps) => {
   const showVisitorNotes = !notesLoading && visitorNotes.length > 0;
 
   return (
-    // min-h-(--app-height), not min-h-full: this is the one section built on
-    // CSS Grid, and a percentage min-height (`100%`) needs its ancestor to
-    // carry a genuinely definite height to resolve against cleanly — a known
-    // source of ambiguous row sizing when combined with `items-center`. A
-    // grid row sized smaller than its own content, then centered, spills
-    // evenly above *and* below it — straight into whatever comes next in the
-    // scroll flow, which on mobile is NextSectionCue. Every other section
-    // uses this same fixed-length token (or no forced height at all) and
-    // never showed the overlap; this was the one place still holding a
-    // percentage.
-    <div className="relative mx-auto grid min-h-(--app-height) w-full max-w-6xl items-center gap-12 px-6 py-12 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-10 lg:px-8 xl:gap-16">
+    // No forced min-height and no items-center below `lg`: this is the one
+    // section built on CSS Grid, and pairing a forced container height with
+    // grid alignment is exactly the combination that leaves leftover track
+    // space for the browser to redistribute — and on a single mobile column,
+    // that space has nowhere sensible to go but around the content, which
+    // was spilling into NextSectionCue right after it. (An earlier attempt
+    // swapped the forced height from a percentage to a fixed length,
+    // reasoning that the percentage was the ambiguous part; it wasn't — the
+    // forced height itself was, regardless of unit.) Mobile is a single
+    // column in normal scroll flow with no vertical-centering job to do, so
+    // it needs neither: its height should come from its content, full stop.
+    // Both return at `lg`, where they are load-bearing for the actual
+    // two-column hero.
+    <div className="relative mx-auto grid w-full max-w-6xl gap-12 px-6 py-12 sm:px-10 lg:min-h-(--app-height) lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-stretch lg:gap-10 lg:px-8 xl:gap-16">
       {/* Theme-paired flourish: the lineart curl is the day mark, the star
           cluster the night one, sharing a slot so either theme shows the
           same number of marks. */}
