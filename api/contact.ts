@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { ensureSchema, sql } from "./_lib/db.js";
-import { sendContactAutoReply, sendContactNotification } from "./_lib/email.js";
 import { hashIp, isContactRateLimited, looksLikeSpam } from "./_lib/spam.js";
+import { relayContactSubmission } from "./_lib/web3forms.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,9 +30,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Message is required." });
   }
 
-  // Checked before the DB insert and the two Resend sends below — the actual
-  // cost of an unthrottled flood, so the limit has to sit ahead of them, not
-  // just ahead of the honeypot-adjacent validation above.
+  // Checked before the DB insert and the notification relay below — the
+  // actual cost of an unthrottled flood, so the limit has to sit ahead of
+  // them, not just ahead of the honeypot-adjacent validation above.
   await ensureSchema();
   const ipHash = hashIp(req);
   if (await isContactRateLimited(ipHash)) {
@@ -50,15 +50,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     VALUES (${name}, ${email}, ${message}, ${ipHash})
   `;
 
-  const [notification, autoReply] = await Promise.allSettled([
-    sendContactNotification({ name, email, message }),
-    sendContactAutoReply({ name, email }),
-  ]);
-  if (notification.status === "rejected") {
-    console.error("Contact notification email failed", notification.reason);
-  }
-  if (autoReply.status === "rejected") {
-    console.error("Contact auto-reply email failed", autoReply.reason);
+  // The submission is already durable in Postgres above regardless of what
+  // happens here — a relay failure loses a notification, never the message
+  // itself. There is deliberately no auto-reply to the visitor alongside
+  // this: see web3forms.ts for why that specific capability isn't available
+  // without a verified sending domain, on any free relay.
+  try {
+    await relayContactSubmission({ name, email, message });
+  } catch (err) {
+    console.error("Contact notification relay failed", err);
   }
 
   return res.status(200).json({ ok: true });

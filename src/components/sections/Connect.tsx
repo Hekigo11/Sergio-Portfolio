@@ -57,7 +57,9 @@ function ContactRow({
     return (
       <div className={`${rowClasses} opacity-60`}>
         <MetaLabel className="shrink-0 sm:w-20">{label}</MetaLabel>
-        <span className={`truncate text-sm font-semibold ${muted}`}>{value}</span>
+        <span className={`truncate text-sm font-semibold ${muted}`}>
+          {value}
+        </span>
       </div>
     );
   }
@@ -100,9 +102,9 @@ function ContactRow({
 function ContactForm({ theme }: { theme: ThemeClasses }) {
   const { muted, fieldClasses, errorText } = theme;
   const shouldReduceMotion = useReducedMotion();
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -203,11 +205,21 @@ function ContactForm({ theme }: { theme: ThemeClasses }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2">
               <MetaLabel>Name</MetaLabel>
-              <input required name="name" maxLength={100} className={fieldClasses} />
+              <input
+                required
+                name="name"
+                maxLength={100}
+                className={fieldClasses}
+              />
             </label>
             <label className="flex flex-col gap-2">
               <MetaLabel>Email</MetaLabel>
-              <input required type="email" name="email" className={fieldClasses} />
+              <input
+                required
+                type="email"
+                name="email"
+                className={fieldClasses}
+              />
             </label>
           </div>
           <label className="flex flex-1 flex-col gap-2">
@@ -248,7 +260,12 @@ function CommentComposer({
   onPosted,
 }: {
   theme: ThemeClasses;
-  onPosted: (comment: { id: number; name: string; message: string; created_at: string }) => void;
+  onPosted: (comment: {
+    id: number;
+    name: string;
+    message: string;
+    created_at: string;
+  }) => void;
 }) {
   const { muted, fieldClasses, errorText } = theme;
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
@@ -301,7 +318,7 @@ function CommentComposer({
           required
           name="message"
           maxLength={500}
-          placeholder="Leave a note…"
+          placeholder="Leave a comment :>…"
           className={`${fieldClasses} flex-1`}
         />
         <button
@@ -313,7 +330,9 @@ function CommentComposer({
         </button>
       </div>
       {status === "error" && <p className={`text-sm ${errorText}`}>{error}</p>}
-      <p className={`text-xs ${muted}`}>Public — visible to anyone who visits.</p>
+      <p className={`text-xs ${muted}`}>
+        Public — visible to anyone who visits.
+      </p>
     </form>
   );
 }
@@ -325,11 +344,15 @@ function CommentsFeed({ theme }: { theme: ThemeClasses }) {
   return (
     <div className="mt-6 flex min-h-0 flex-1 flex-col">
       <CommentComposer theme={theme} onPosted={prepend} />
-      <div className={`mt-5 min-h-0 flex-1 overflow-y-auto border-t pt-4 ${line}`}>
+      <div
+        className={`mt-5 min-h-0 flex-1 overflow-y-auto border-t pt-4 ${line}`}
+      >
         {loading && <p className={`text-sm ${muted}`}>Loading notes…</p>}
         {!loading && error && <p className={`text-sm ${muted}`}>{error}</p>}
         {!loading && !error && comments.length === 0 && (
-          <p className={`text-sm ${muted}`}>No notes yet — be the first to say hello.</p>
+          <p className={`text-sm ${muted}`}>
+            No notes yet — be the first to say hello.
+          </p>
         )}
         <ul className="flex flex-col">
           <AnimatePresence initial={false}>
@@ -350,7 +373,9 @@ function CommentsFeed({ theme }: { theme: ThemeClasses }) {
                     {formatRelativeTime(comment.created_at)}
                   </MetaLabel>
                 </div>
-                <p className={`mt-2 text-sm leading-6 ${muted}`}>{comment.message}</p>
+                <p className={`mt-2 text-sm leading-6 ${muted}`}>
+                  {comment.message}
+                </p>
               </motion.li>
             ))}
           </AnimatePresence>
@@ -437,7 +462,7 @@ const Connect = ({ darkMode: _darkMode }: ConnectProps) => {
           className={`flex flex-col rounded-xl border p-6 lg:min-h-0 lg:p-8 ${theme.cardClasses}`}
         >
           <h3 className="font-display text-xl font-bold tracking-tight text-ink">
-            Notes from visitors
+            Comments from visitors
           </h3>
           <p className={`mt-2 text-sm leading-6 ${theme.muted}`}>
             The five most recent also show up on the homepage.

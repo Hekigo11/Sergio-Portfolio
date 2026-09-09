@@ -16,8 +16,10 @@
     "motion": "^13.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "resend": "^4.0.1",
     "tailwindcss": "^4.3.3"
+  },
+  "overrides": {
+    "tar": "^7.5.21"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
