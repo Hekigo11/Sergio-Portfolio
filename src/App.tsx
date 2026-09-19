@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 import { StickyNavbar } from "./components/navbar";
 import { SpatialCanvas } from "./components/SpatialCanvas";
@@ -62,6 +63,7 @@ function App() {
         onToggleDarkMode={() => setDarkMode((prev) => !prev)}
         onNavigate={navigateTo}
       />
+      <Analytics />
     </div>
   );
 }
